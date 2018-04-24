@@ -1,0 +1,82 @@
+#+TITLE: Produktliste
+#+AUTHOR: Håvard Krogstie
+#+OPTIONS: \n:t
+
+Versjon 1.0.0 - 2018-04-24
+
+* Ting vi har kjøpt
+** 2x LED strip (240/rull addressable)
+** Arduino Mega, med USB A->B
+** 2x Arcade-sticks og 8+2 knapper
+** PCD-brett for lodding
+
+* Ting vi har fått fra hylla
+** Mange, mange, 6mm- og 3mm-treplater
+** Filament til 3d-printa båter
+** Ledninger, loddetinn, kabelstrømper, lim
+
+* Ting vi vi må skaffe
+** Strømforskyning, 5V, 15A
+*** Hvorfor 5V?
+Alle delene skal kunne drives av USB, så da kan ingen av dem forvente mer enn 5v
+*** Hvorfor 15A?
+ - .7A / 100LED * 3 farger/LED * 400LED => 8.4A  
+ - Arduino 500mA uten peripherals  
+ - Raspberry Pi 1000mA uten peripherals  
+ - Camera: 250mA  
+ - USB-høytalere: Audio-output + USB kan umulig være mer enn 2A  
+ - Knapper (12) 12*5V/10k Ohm = 6mA hvis alle trykkes ned -> Neglisjerbart  
+ - *Sum:* 12.156A, så 15A burde være plenty.
+
+*** Den vi kjøper:
+AC to DC Power supply (100V-240V @ [56]0Hz to 5v 15A, power jack: 5.5mm x 2.1mm)
+by ALITOVE
+Link: http://a.co/bK7Yq2o
+Delivery: Fulfillment by Amazon
+
+** Female-plug for strømforskyningen
+Hører med PSUen!
+** Micro-USB for å gi strøm til Raspberry Pi + Arduino
+Kutt opp en gammel micro-USB-kabel og lodd på 5v og GND. Data bryr vi oss ikke med
+** Raspberry PI
+Raspberry Pi 3 Model B+ (Hvilkensom helst Raspberry Pi-modell skal funke, men det er den de har på lager, og ekstra beef er greit når vi skal gjøre optiske ting)
+https://www.komplett.no/product/992021/datautstyr/pc-komponenter/hovedkort/integrert-cpu/raspberry-pi-3-model-b?offerId=KOMPLETT-310-992021
+** SD-kort for Raspberry PI
+8GB minst, fantes ikke på komplett for øyeblikket, finnes garantert på Clas Ohlson
+** Raspberry PI camera module v2
+https://www.komplett.no/product/888101/datautstyr/pc-komponenter/hovedkort/tilbehoer/raspberry-pi-camera-module-v2?offerId=KOMPLETT-310-888101#
+** 2x 618mmx618mm og 2x 418mmx418mm halvgjennomsiktig akryl
+Spørr en av Laserkutte-guruene
+** Høytaler
+139 kr for et par høytalere må bare bli kanonbra lyd. Strøm fra USB vi lett kan lodde på 5v DC.
+https://www.komplett.no/product/798235/gaming/lyd/hoeyttalere/creative-a50-pc-hoeyttalere?offerId=KOMPLETT-310-798235
+
+* Ting vi statser på å få fra hylla:
+** Servo for å peke kameraet (??)
+Har de sikkert på Trigger
+
+** 12x 10K Ohm motstander for knappene
+H har hvertfall 10 stykker hjemme, og det er veldig vanlig å bruke i kits med knapper
+
+* Ting vi har gjort og skal gjøre
+** DONE Kuttet ut kabinett
+** DONE Kuttet ut bakplater
+   CLOSED: [2018-04-24 Tue 10:33]
+** DONE Loddet 100LEDs sammen på én av 6cm-ledmatrisene
+   CLOSED: [2018-04-24 Tue 10:33]
+*** Testet, funker hele veien med blått og grønt lys
+Trekker 0.73A ved 5.0V når vi kun bruker Arduino-mega og én farge per LED.
+
+** TODO Kutte ut resten av LED-matriseskilleveggene
+Vi trenger 22 6cm T, 22 6cm U, 22 4cm T, 22 4cm U
+** TODO Sette sammen kabinettet
+Gjerne på en slik måte at vi *ENKELT* kan åpne opp og jobbe inni, samtidig som at det er solid.
+Noen henglsler og klemmer kunne gjort seg.
+** TODO Lage hull til knapper og spaker, skru dem inn først som sist
+** TODO Finne et sted på innsiden å gjøre all loddingen
+
+* Idé for sammensetting
+Jeg vet ikke hvordan kabinettet er designet, men vi burde trolig vente med å feste noe gulv til vi er ferdige inni, og selv da bør ene veggen være lett avtagbar.
+På den ikke-avtagbare veggen setter vi strøm-input og PCB-brett for å koble på alt som skal ha 5v og GND (4 skjermer, alle knappene, høytalere, Raspberry pi). (Arduino får strøm over USB fra pi-en).
+Bruk to kabler for å gi 5V DC til motsatt side av kabinettet, siden hvertfall knappene på andre siden trenger strøm. Viktig å tvinne disse ledningene for å unngå elektrisk støy.
+Høytalerene ligger i toppen av kabinettet, og jeg vil derfor koble til alle skjermene nederst. Det er ikke nødvendigvis her Data_in befinner seg, men de trenger ikke kobles til samme sted. 

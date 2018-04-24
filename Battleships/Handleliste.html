@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Produktliste</title>
+<!-- 2018-04-24 Tue 10:34 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Org-mode">
+<meta name="author" content="Håvard Krogstie">
+
+<link  href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<style type="text/css">
+/* org mode styles on top of twbs */
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-size: 18px;
+    margin-bottom: 105px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 101px;
+    background-color: #f5f5f5;
+}
+
+footer > div {
+    padding: 10px;
+}
+
+footer p {
+    margin: 0 0 5px;
+    text-align: center;
+    font-size: 16px;
+}
+
+#table-of-contents {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+blockquote p {
+    font-size: 18px;
+}
+
+pre {
+    font-size: 16px;
+}
+
+.footpara {
+    display: inline-block;
+}
+
+figcaption {
+  font-size: 16px;
+  color: #666;
+  font-style: italic;
+  padding-bottom: 15px;
+}
+
+/* from twbs docs */
+
+.bs-docs-sidebar.affix {
+    position: static;
+}
+@media (min-width: 768px) {
+    .bs-docs-sidebar {
+        padding-left: 20px;
+    }
+}
+
+/* All levels of nav */
+.bs-docs-sidebar .nav > li > a {
+    display: block;
+    padding: 4px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #999;
+}
+.bs-docs-sidebar .nav > li > a:hover,
+.bs-docs-sidebar .nav > li > a:focus {
+    padding-left: 19px;
+    color: #A1283B;
+    text-decoration: none;
+    background-color: transparent;
+    border-left: 1px solid #A1283B;
+}
+.bs-docs-sidebar .nav > .active > a,
+.bs-docs-sidebar .nav > .active:hover > a,
+.bs-docs-sidebar .nav > .active:focus > a {
+    padding-left: 18px;
+    font-weight: bold;
+    color: #A1283B;
+    background-color: transparent;
+    border-left: 2px solid #A1283B;
+}
+
+/* Nav: second level (shown on .active) */
+.bs-docs-sidebar .nav .nav {
+    display: none; /* Hide by default, but at >768px, show it */
+    padding-bottom: 10px;
+}
+.bs-docs-sidebar .nav .nav > li > a {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 30px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.bs-docs-sidebar .nav .nav > li > a:hover,
+.bs-docs-sidebar .nav .nav > li > a:focus {
+    padding-left: 29px;
+}
+.bs-docs-sidebar .nav .nav > .active > a,
+.bs-docs-sidebar .nav .nav > .active:hover > a,
+.bs-docs-sidebar .nav .nav > .active:focus > a {
+    padding-left: 28px;
+    font-weight: 500;
+}
+
+/* Nav: third level (shown on .active) */
+.bs-docs-sidebar .nav .nav .nav {
+    padding-bottom: 10px;
+}
+.bs-docs-sidebar .nav .nav .nav > li > a {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 40px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.bs-docs-sidebar .nav .nav .nav > li > a:hover,
+.bs-docs-sidebar .nav .nav .nav > li > a:focus {
+    padding-left: 39px;
+}
+.bs-docs-sidebar .nav .nav .nav > .active > a,
+.bs-docs-sidebar .nav .nav .nav > .active:hover > a,
+.bs-docs-sidebar .nav .nav .nav > .active:focus > a {
+    padding-left: 38px;
+    font-weight: 500;
+}
+
+/* Show and affix the side nav when space allows it */
+@media (min-width: 992px) {
+    .bs-docs-sidebar .nav > .active > ul {
+        display: block;
+    }
+    /* Widen the fixed sidebar */
+    .bs-docs-sidebar.affix,
+    .bs-docs-sidebar.affix-bottom {
+        width: 213px;
+    }
+    .bs-docs-sidebar.affix {
+        position: fixed; /* Undo the static from mobile first approach */
+        top: 20px;
+    }
+    .bs-docs-sidebar.affix-bottom {
+        position: absolute; /* Undo the static from mobile first approach */
+    }
+    .bs-docs-sidebar.affix .bs-docs-sidenav,.bs-docs-sidebar.affix-bottom .bs-docs-sidenav {
+        margin-top: 0;
+        margin-bottom: 0
+    }
+}
+@media (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .bs-docs-sidebar.affix-bottom,
+    .bs-docs-sidebar.affix {
+        width: 263px;
+    }
+}
+</style>
+<script type="text/javascript">
+$(function() {
+    'use strict';
+
+    $('.bs-docs-sidebar li').first().addClass('active');
+
+    $(document.body).scrollspy({target: '.bs-docs-sidebar'});
+
+    $('.bs-docs-sidebar').affix();
+});
+</script>
+</head>
+<body>
+<div id="content" class="container">
+<div class="row"><div class="col-md-9"><h1 class="title">Produktliste</h1>
+<p>
+Versjon 1.0.0 - 2018-04-24<br >
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Ting vi har kjøpt</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 2x LED strip (addressable)</h3>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Arduino Mega, med USB A-&gt;B</h3>
+</div>
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 2x Arcade-sticks og 8+2 knapper</h3>
+</div>
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> PCD-brett for lodding</h3>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Ting vi har fått fra hylla</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Mange, mange, 6mm- og 3mm-treplater</h3>
+</div>
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Filament til 3d-printa båter</h3>
+</div>
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Ledninger, loddetinn, kabelstrømper, lim</h3>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Ting vi vi må skaffe</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Strømforskyning, 5V, 15A</h3>
+<div class="outline-text-3" id="text-3-1">
+</div><div id="outline-container-sec-3-1-1" class="outline-4">
+<h4 id="sec-3-1-1"><span class="section-number-4">3.1.1</span> Hvorfor 5V?</h4>
+<div class="outline-text-4" id="text-3-1-1">
+<p>
+Alle delene skal kunne drives av USB, så da kan ingen av dem forvente mer enn 5v<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-1-2" class="outline-4">
+<h4 id="sec-3-1-2"><span class="section-number-4">3.1.2</span> Hvorfor 15A?</h4>
+<div class="outline-text-4" id="text-3-1-2">
+<ul class="org-ul">
+<li>.7A / 100LED * 3 farger/LED * 400LED =&gt; 8.4A<br >
+</li>
+<li>Arduino 500mA uten peripherals<br >
+</li>
+<li>Raspberry Pi 1000mA uten peripherals<br >
+</li>
+<li>Camera: 250mA<br >
+</li>
+<li>USB-høytalere: Audio-output + USB kan umulig være mer enn 2A<br >
+</li>
+<li>Knapper (12) 12*5V/10k Ohm = 6mA hvis alle trykkes ned -&gt; Neglisjerbart<br >
+</li>
+<li><b>Sum:</b> 12.156A, så 15A burde være plenty.<br >
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3-1-3" class="outline-4">
+<h4 id="sec-3-1-3"><span class="section-number-4">3.1.3</span> Den vi kjøper:</h4>
+<div class="outline-text-4" id="text-3-1-3">
+<p>
+AC to DC Power supply (100V-240V @ [56]0Hz to 5v 15A, power jack: 5.5mm x 2.1mm)<br >
+by ALITOVE<br >
+Link: <a href="http://a.co/bK7Yq2o">http://a.co/bK7Yq2o</a><br >
+Delivery: Fulfillment by Amazon<br >
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Female-plug for strømforskyningen</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Hører med PSUen!<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Micro-USB for å gi strøm til Raspberry Pi + Arduino</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+Kutt opp en gammel micro-USB-kabel og lodd på 5v og GND. Data bryr vi oss ikke med<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Raspberry PI</h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+Raspberry Pi 3 Model B+ (Hvilkensom helst Raspberry Pi-modell skal funke, men det er den de har på lager, og ekstra beef er greit når vi skal gjøre optiske ting)<br >
+<a href="https://www.komplett.no/product/992021/datautstyr/pc-komponenter/hovedkort/integrert-cpu/raspberry-pi-3-model-b?offerId=KOMPLETT-310-992021">https://www.komplett.no/product/992021/datautstyr/pc-komponenter/hovedkort/integrert-cpu/raspberry-pi-3-model-b?offerId=KOMPLETT-310-992021</a><br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> SD-kort for Raspberry PI</h3>
+<div class="outline-text-3" id="text-3-5">
+<p>
+8GB minst, fantes ikke på komplett for øyeblikket, finnes garantert på Clas Ohlson<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Raspberry PI camera module v2</h3>
+<div class="outline-text-3" id="text-3-6">
+<p>
+<a href="https://www.komplett.no/product/888101/datautstyr/pc-komponenter/hovedkort/tilbehoer/raspberry-pi-camera-module-v2?offerId=KOMPLETT-310-888101">https://www.komplett.no/product/888101/datautstyr/pc-komponenter/hovedkort/tilbehoer/raspberry-pi-camera-module-v2?offerId=KOMPLETT-310-888101</a>#<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-7" class="outline-3">
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> 2x 618mmx618mm og 2x 418mmx418mm halvgjennomsiktig akryl</h3>
+<div class="outline-text-3" id="text-3-7">
+<p>
+Spørr en av Laserkutte-guruene<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-8" class="outline-3">
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Høytaler</h3>
+<div class="outline-text-3" id="text-3-8">
+<p>
+139 kr for et par høytalere må bare bli kanonbra lyd. Strøm fra USB vi lett kan lodde på 5v DC.<br >
+<a href="https://www.komplett.no/product/798235/gaming/lyd/hoeyttalere/creative-a50-pc-hoeyttalere?offerId=KOMPLETT-310-798235">https://www.komplett.no/product/798235/gaming/lyd/hoeyttalere/creative-a50-pc-hoeyttalere?offerId=KOMPLETT-310-798235</a><br >
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Ting vi statser på å få fra hylla:</h2>
+<div class="outline-text-2" id="text-4">
+</div><div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Servo for å peke kameraet (??)</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+Har de sikkert på Trigger<br >
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> 12x 10K Ohm motstander for knappene</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+H har hvertfall 10 stykker hjemme, og det er veldig vanlig å bruke i kits med knapper<br >
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Ting vi har gjort og skal gjøre</h2>
+<div class="outline-text-2" id="text-5">
+</div><div id="outline-container-sec-5-1" class="outline-3">
+<h3 id="sec-5-1"><span class="section-number-3">5.1</span> <span class="label label-default DONE">DONE</span> Kuttet ut kabinett</h3>
+</div>
+<div id="outline-container-sec-5-2" class="outline-3">
+<h3 id="sec-5-2"><span class="section-number-3">5.2</span> <span class="label label-default DONE">DONE</span> Kuttet ut bakplater</h3>
+<div class="outline-text-3" id="text-5-2">
+</div>
+</div>
+<div id="outline-container-sec-5-3" class="outline-3">
+<h3 id="sec-5-3"><span class="section-number-3">5.3</span> <span class="label label-default DONE">DONE</span> Loddet 100LEDs sammen på én av 6cm-ledmatrisene</h3>
+<div class="outline-text-3" id="text-5-3">
+</div>
+<div id="outline-container-sec-5-3-1" class="outline-4">
+<h4 id="sec-5-3-1"><span class="section-number-4">5.3.1</span> Testet, funker hele veien med blått og grønt lys</h4>
+<div class="outline-text-4" id="text-5-3-1">
+<p>
+Trekker 0.73A ved 5.0V når vi kun bruker Arduino-mega og én farge per LED.<br >
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-5-4" class="outline-3">
+<h3 id="sec-5-4"><span class="section-number-3">5.4</span> <span class="label label-primary TODO">TODO</span> Kutte ut resten av LED-matriseskilleveggene</h3>
+<div class="outline-text-3" id="text-5-4">
+<p>
+Vi trenger 22 6cm T, 22 6cm U, 22 4cm T, 22 4cm U<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-5-5" class="outline-3">
+<h3 id="sec-5-5"><span class="section-number-3">5.5</span> <span class="label label-primary TODO">TODO</span> Sette sammen kabinettet</h3>
+<div class="outline-text-3" id="text-5-5">
+<p>
+Gjerne på en slik måte at vi <b>ENKELT</b> kan åpne opp og jobbe inni, samtidig som at det er solid.<br >
+Noen henglsler og klemmer kunne gjort seg.<br >
+</p>
+</div>
+</div>
+<div id="outline-container-sec-5-6" class="outline-3">
+<h3 id="sec-5-6"><span class="section-number-3">5.6</span> <span class="label label-primary TODO">TODO</span> Lage hull til knapper og spaker, skru dem inn først som sist</h3>
+</div>
+<div id="outline-container-sec-5-7" class="outline-3">
+<h3 id="sec-5-7"><span class="section-number-3">5.7</span> <span class="label label-primary TODO">TODO</span> Finne et sted på innsiden å gjøre all loddingen</h3>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Idé for sammensetting</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+Jeg vet ikke hvordan kabinettet er designet, men vi burde trolig vente med å feste noe gulv til vi er ferdige inni, og selv da bør ene veggen være lett avtagbar.<br >
+På den ikke-avtagbare veggen setter vi strøm-input og PCB-brett for å koble på alt som skal ha 5v og GND (4 skjermer, alle knappene, høytalere, Raspberry pi). (Arduino får strøm over USB fra pi-en).<br >
+Bruk to kabler for å gi 5V DC til motsatt side av kabinettet, siden hvertfall knappene på andre siden trenger strøm. Viktig å tvinne disse ledningene for å unngå elektrisk støy.<br >
+Høytalerene ligger i toppen av kabinettet, og jeg vil derfor koble til alle skjermene nederst. Det er ikke nødvendigvis her Data<sub>in</sub> befinner seg, men de trenger ikke kobles til samme sted.<br >
+</p>
+</div>
+</div>
+</div><div class="col-md-3"><nav id="table-of-contents">
+<div id="text-table-of-contents" class="bs-docs-sidebar">
+<ul class="nav">
+<li><a href="#sec-1">1. Ting vi har kjøpt</a>
+<ul class="nav">
+<li><a href="#sec-1-1">1.1. 2x LED strip (addressable)</a></li>
+<li><a href="#sec-1-2">1.2. Arduino Mega, med USB A-&gt;B</a></li>
+<li><a href="#sec-1-3">1.3. 2x Arcade-sticks og 8+2 knapper</a></li>
+<li><a href="#sec-1-4">1.4. PCD-brett for lodding</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. Ting vi har fått fra hylla</a>
+<ul class="nav">
+<li><a href="#sec-2-1">2.1. Mange, mange, 6mm- og 3mm-treplater</a></li>
+<li><a href="#sec-2-2">2.2. Filament til 3d-printa båter</a></li>
+<li><a href="#sec-2-3">2.3. Ledninger, loddetinn, kabelstrømper, lim</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3. Ting vi vi må skaffe</a>
+<ul class="nav">
+<li><a href="#sec-3-1">3.1. Strømforskyning, 5V, 15A</a></li>
+<li><a href="#sec-3-2">3.2. Female-plug for strømforskyningen</a></li>
+<li><a href="#sec-3-3">3.3. Micro-USB for å gi strøm til Raspberry Pi + Arduino</a></li>
+<li><a href="#sec-3-4">3.4. Raspberry PI</a></li>
+<li><a href="#sec-3-5">3.5. SD-kort for Raspberry PI</a></li>
+<li><a href="#sec-3-6">3.6. Raspberry PI camera module v2</a></li>
+<li><a href="#sec-3-7">3.7. 2x 618mmx618mm og 2x 418mmx418mm halvgjennomsiktig akryl</a></li>
+<li><a href="#sec-3-8">3.8. Høytaler</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4. Ting vi statser på å få fra hylla:</a>
+<ul class="nav">
+<li><a href="#sec-4-1">4.1. Servo for å peke kameraet (??)</a></li>
+<li><a href="#sec-4-2">4.2. 12x 10K Ohm motstander for knappene</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5. Ting vi har gjort og skal gjøre</a>
+<ul class="nav">
+<li><a href="#sec-5-1">5.1. Kuttet ut kabinett</a></li>
+<li><a href="#sec-5-2">5.2. Kuttet ut bakplater</a></li>
+<li><a href="#sec-5-3">5.3. Loddet 100LEDs sammen på én av 6cm-ledmatrisene</a></li>
+<li><a href="#sec-5-4">5.4. Kutte ut resten av LED-matriseskilleveggene</a></li>
+<li><a href="#sec-5-5">5.5. Sette sammen kabinettet</a></li>
+<li><a href="#sec-5-6">5.6. Lage hull til knapper og spaker, skru dem inn først som sist</a></li>
+<li><a href="#sec-5-7">5.7. Finne et sted på innsiden å gjøre all loddingen</a></li>
+</ul>
+</li>
+<li><a href="#sec-6">6. Idé for sammensetting</a></li>
+</ul>
+</div>
+</nav>
+</div></div></div>
+<footer id="postamble" class="">
+<div><p class="author">Author: Håvard Krogstie</p>
+<p class="date">Created: 2018-04-24 Tue 10:34</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.3.1 (<a href="http://orgmode.org">Org-mode</a> 9.1.9)</p>
+</div>
+</footer>
+</body>
+</html>
