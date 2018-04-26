@@ -16,4 +16,6 @@ enum class Screen:int {
 
 void sendColor(SerialIO& serial, Player p, Screen s, int x, int y, CRGB color);
 
-void updateButtonState(SerialIO& io, ButtonState& state);
+void setAllScreens(SerialIO& serial, CRGB color);
+
+void updateButtonState(SerialIO& io, ButtonState<bool>& state);

@@ -77,8 +77,8 @@ void loop() {
       }
       FastLED.show();
     }
-    if(c == 'C')
-      setAllLedArrays(CRGB::Black);
+    if(c == 'F')
+      setAllLedArrays(readColor());
   }
 
   static bool prevButtons[BUTTON_COUNT] = {};
