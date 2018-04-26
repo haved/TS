@@ -26,6 +26,15 @@ void Mode::update(ModeStack& modeStack) {
 	m_frameCount++;
 	prevButtons = buttons;
 	updateButtonState(m_serial, buttons);
+    for(int i = 0; i < 2; i++) {
+	    auto incOrNone = [&](int& val, bool inc) { val = inc ? val+1 : 0; };
+		incOrNone(framesHeld.player[i].up, buttons.player[i].up);
+		incOrNone(framesHeld.player[i].down, buttons.player[i].down);
+		incOrNone(framesHeld.player[i].left, buttons.player[i].left);
+		incOrNone(framesHeld.player[i].right, buttons.player[i].right);
+		incOrNone(framesHeld.player[i].action, buttons.player[i].action);
+		incOrNone(framesHeld.player[i].start, buttons.player[i].start);
+	}
 	update_mode(modeStack);
 }
 
@@ -52,7 +61,10 @@ void MenuMode::init() {
 
 void MenuMode::update_mode(ModeStack& modes) {
 	int prevChoice = m_currentChoice;
-    
+    if(clicked(framesHeld.one().up))
+		m_currentChoice--;
+	if(clicked(framesHeld.one().down))
+		m_currentChoice++;
 
 	if(m_currentChoice < 0 || m_currentChoice >= CHOICE_COUNT) {
 		//TODO: Play error beep
