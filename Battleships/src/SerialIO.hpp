@@ -6,12 +6,14 @@
 class SerialIO {
 private:
 	char m_circleBuffer[SERIAL_BUFFER_SIZE]={};
-	int m_currentPos = 0;
+	int m_writtenUntil = 0;
+	int m_readUntil = 0;
 	std::fstream m_serial;
+	void doRead(int preserve);
 public:
 	SerialIO();
 	~SerialIO();
-	bool find(char* text);
-	char* readline();
-	void print(char* text);
+	bool find(const char* text);
+	char waitForByte();
+	void print(const char* text);
 };
