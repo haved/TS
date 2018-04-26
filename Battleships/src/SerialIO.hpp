@@ -16,4 +16,5 @@ public:
 	bool find(const char* text);
 	char waitForByte();
 	void print(const char* text);
+	void write(char byt);
 };

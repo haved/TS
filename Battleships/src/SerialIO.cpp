@@ -47,6 +47,7 @@ void SerialIO::doRead(int preserve) {
 bool SerialIO::find(const char* text) {
 	int textLen = strlen(text);
 	assert(textLen > 0);
+	assert(textLen < SERIAL_BUFFER_SIZE); //We can never read the full buffer
 
     auto buf = [&](int x) {
 		x %= SERIAL_BUFFER_SIZE;
@@ -82,4 +83,12 @@ char SerialIO::waitForByte() {
 	}
 	char c = m_serial.get();
 	return c;
+}
+
+void SerialIO::print(const char* c) {
+	m_serial << c;
+}
+
+void SerialIO::write(char byt) {
+	m_serial << byt;
 }

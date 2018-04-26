@@ -1,0 +1,19 @@
+#pragma once
+
+#include "SerialIO.hpp"
+#include "Util.hpp"
+#include "Game.hpp"
+
+enum class Player:int {
+	ONE=0,
+	TWO=1
+};
+
+enum class Screen:int {
+	ATTACK=0,
+	DEFENSE=1
+};
+
+void sendColor(SerialIO& serial, Player p, Screen s, int x, int y, CRGB color);
+
+void updateButtonState(SerialIO& io, ButtonState& state);

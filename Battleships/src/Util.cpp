@@ -1,0 +1,7 @@
+#include "Util.hpp"
+
+CRGB WHITE{255, 255, 255};
+CRGB RED{255, 0, 0};
+CRGB GREEN{0, 255, 0};
+CRGB BLUE{0, 0, 255};
+CRGB BLACK{0, 0, 0};
