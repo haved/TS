@@ -86,6 +86,8 @@ void loop() {
     bool state = digitalRead(BUTTON_PIN_MIN+i);
     if(state != prevButtons[i]) {
       IO.print("BS+BTN ");
+      IO.print(state ? "DWN": "REL");
+      IO.print(' ');
       if(i >= P2_BTN_OFFSET) {
         IO.print("P2");
         IO.println(BTN_CODE[i-P2_BTN_OFFSET]);
