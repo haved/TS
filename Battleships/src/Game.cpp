@@ -14,8 +14,8 @@ SerialIO* global_serial_ptr;
 bool clicked(int framesHeld) {
 	if(framesHeld == 1)
 		return true;
-	if(framesHeld > 30)
-		return (framesHeld-30)%10 == 0;
+	if(framesHeld > 20)
+		return (framesHeld-20)%6 == 0;
 	return false;
 }
 

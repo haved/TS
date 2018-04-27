@@ -104,8 +104,6 @@ char SerialIO::waitForByte() {
 		m_readUntil++;
 		m_readUntil %= SERIAL_BUFFER_SIZE;
 	}
-	if(!INPUT)
-		throw std::runtime_error("Serial is closed");
 	char c = INPUT.get();
 	if(!INPUT)
 		throw std::runtime_error("Serial in was closed");
@@ -122,13 +120,13 @@ void SerialIO::tellToStopReading() {
 
 void SerialIO::print(const char* c) {
 	if(!OUTPUT.good())
-		throw std::runtime_error("Serial is closed");
+		throw std::runtime_error("Serial out is borked");
     OUTPUT << c;
 }
 
 void SerialIO::write(char byt) {
 	if(!OUTPUT.good())
-		throw std::runtime_error("Serial is closed");
+		throw std::runtime_error("Serial out is borked");
     OUTPUT << byt;
 }
 

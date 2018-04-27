@@ -41,6 +41,13 @@ def updateColors():
 def getScreenIndex(player, attack):
     return (1 if attack else 0) if player == 1 else (2 if attack else 3)
 
+def getScreenCoord(screenIndex, x, y):
+    if screenIndex in (0, 1):
+        x = WIDTH-x;
+    if screenIndex % 2 == 0: #y on the bottom
+        y = HEIGHT-y;
+    return (x,y)
+
 def readColor(txt):
     return (txt[0], txt[1], txt[2])
 
@@ -53,7 +60,9 @@ def handleLine(line):
             x = line[7]-ord('0')
             y = line[8]-ord('0')
             color = readColor(line[9:9+3])
-            colors[getScreenIndex(playerNum, attack)][x][y] = color
+            scrIndx = getScreenIndex(playerNum, attack)
+            x,y=getScreenCoord(scrIndx, x, y)
+            colors[scrIndx][x][y] = color
             #print("Set: colors", getScreenIndex(playerNum, attack), x, y, " to ", color)
         else:
             print("Garbo: ", line)
@@ -79,12 +88,13 @@ def keyAction(key, release):
         battleships.stdin.write(b"BS+D");
     battleships.stdin.write(chr(ord('A')+key).encode('utf-8'));
     battleships.stdin.flush()
+    print("Pressed:", keys[key])
 
 def bindKey(name, code):
     root.bind("<"+name+">", lambda x: keyAction(code, False))
     root.bind("<KeyRelease-"+name+">", lambda x: keyAction(code, True))
 
-keys = ["Left", "Right", "Up", "Down", "space", "Return", "A", "D", "W", "S", "Q", "1"]
+keys = ["Left", "Right", "Up", "Down", "space", "Return", "a", "d", "w", "s", "e", "t"]
 
 for i in range(len(keys)):
     bindKey(keys[i], i)
