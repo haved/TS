@@ -17,6 +17,8 @@ void ModeDeleter::operator ()(Mode* mode) {
 	delete mode;
 }
 
+Mode::~Mode() {}
+
 void Mode::update(ModeStack& modeStack) {
 	if(!m_initialized) {
 		init();

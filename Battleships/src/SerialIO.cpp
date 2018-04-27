@@ -29,18 +29,28 @@ std::string getWantedTTY() {
 }
 
 SerialIO::SerialIO() : m_serial() {
+#ifndef USE_STDIO
 	std::string wantedTTY = "/dev/"+getWantedTTY();
-	m_serial.open(wantedTTY, std::ios::out | std::ios::in | std::ios::binary);
+	m_serial.open(wantedTTY, std::ios::out | std::ios::in | std::ios::binary | std::ios::app);
 	if(!m_serial.is_open()) throw std::runtime_error("Failed to open: " + wantedTTY);
+#endif
 }
 
 SerialIO::~SerialIO() {
 	m_serial.close();
 }
 
+#ifdef USE_STDIO
+#define INPUT std::cin
+#define OUTPUT std::cout
+#else
+#define INPUT m_serial
+#define OUTPUT m_serial
+#endif
+
 void SerialIO::doRead(int preserve) {
 	int maxReadLength = std::min(SERIAL_BUFFER_SIZE-m_writtenUntil, SERIAL_BUFFER_SIZE-preserve+1);
-	int read = m_serial.readsome(&m_circleBuffer[m_writtenUntil], maxReadLength);
+	int read = INPUT.readsome(&m_circleBuffer[m_writtenUntil], maxReadLength);
 	m_writtenUntil = (m_writtenUntil+read)%SERIAL_BUFFER_SIZE;
 }
 
@@ -81,14 +91,20 @@ char SerialIO::waitForByte() {
 		m_readUntil++;
 		m_readUntil %= SERIAL_BUFFER_SIZE;
 	}
-	char c = m_serial.get();
+	if(!INPUT.eof())
+		throw new std::runtime_error("Serial is closed");
+	char c = INPUT.get();
 	return c;
 }
 
 void SerialIO::print(const char* c) {
-	m_serial << c;
+	if(!OUTPUT.good())
+		throw new std::runtime_error("Serial is closed");
+    OUTPUT << c;
 }
 
 void SerialIO::write(char byt) {
-	m_serial << byt;
+	if(!OUTPUT.good())
+		throw new std::runtime_error("Serial is closed");
+    OUTPUT << byt;
 }

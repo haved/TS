@@ -14,11 +14,13 @@ void sendColor(SerialIO& io, Player p, Screen s, int x, int y, CRGB color) {
 	io.write('0'+x);
 	io.write('0'+y);
 	sendColorChannels(io, color);
+	io.write('\n');
 }
 
 void setAllScreens(SerialIO& io, CRGB color) {
 	io.print("BS+F"); //F for fill (every screen)
 	sendColorChannels(io, color);
+	io.write('\n');
 }
 
 void updateButtonState(SerialIO& io, ButtonState<bool>& state) {
