@@ -1,6 +1,7 @@
 #include "SerialIO.hpp"
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
 #include <cstring>
 #include <cassert>
@@ -28,7 +29,16 @@ std::string getWantedTTY() {
 	return result;
 }
 
-SerialIO::SerialIO() : m_serial() {
+#ifdef USE_STDIO
+#define INPUT std::cin
+#define OUTPUT std::cout
+#else
+#define INPUT m_serial
+#define OUTPUT m_serial
+#endif
+
+
+SerialIO::SerialIO() : m_serial(), m_keepReading(true) {
 #ifndef USE_STDIO
 	std::string wantedTTY = "/dev/"+getWantedTTY();
 	m_serial.open(wantedTTY, std::ios::out | std::ios::in | std::ios::binary | std::ios::app);
@@ -40,17 +50,20 @@ SerialIO::~SerialIO() {
 	m_serial.close();
 }
 
-#ifdef USE_STDIO
-#define INPUT std::cin
-#define OUTPUT std::cout
-#else
-#define INPUT m_serial
-#define OUTPUT m_serial
-#endif
-
 void SerialIO::doRead(int preserve) {
-	int maxReadLength = std::min(SERIAL_BUFFER_SIZE-m_writtenUntil, SERIAL_BUFFER_SIZE-preserve+1);
-	int read = INPUT.readsome(&m_circleBuffer[m_writtenUntil], maxReadLength);
+	//int maxReadLength = std::min(SERIAL_BUFFER_SIZE-m_writtenUntil, SERIAL_BUFFER_SIZE-preserve+1);
+	//int read = INPUT.readsome(&m_circleBuffer[m_writtenUntil], maxReadLength);
+	/*if(read != 0) {
+		std::cerr << "Looking at: ";
+		std::cerr.write(&m_circleBuffer[m_writtenUntil], read);
+		}*/
+
+	//std::cerr << "Trying to read" << std::endl;
+	m_circleBuffer[m_writtenUntil] = INPUT.get(); //blocking
+	if(!INPUT)
+		throw std::runtime_error("Serial in was closed");
+	//std::cerr << "Got char: " << m_circleBuffer[m_writtenUntil] << std::endl;
+	int read = 1;
 	m_writtenUntil = (m_writtenUntil+read)%SERIAL_BUFFER_SIZE;
 }
 
@@ -73,7 +86,7 @@ bool SerialIO::find(const char* text) {
 				if(buf(m_readUntil+i+j) != text[j])
 					goto outer;
 			}
-			m_readUntil = (i+textLen)%SERIAL_BUFFER_SIZE; //We now start reading from after what we found
+			m_readUntil = (m_readUntil+i+textLen)%SERIAL_BUFFER_SIZE; //We now start reading from after what we found
 			return true;
 		outer:;
 		}
@@ -91,20 +104,34 @@ char SerialIO::waitForByte() {
 		m_readUntil++;
 		m_readUntil %= SERIAL_BUFFER_SIZE;
 	}
-	if(!INPUT.eof())
-		throw new std::runtime_error("Serial is closed");
+	if(!INPUT)
+		throw std::runtime_error("Serial is closed");
 	char c = INPUT.get();
+	if(!INPUT)
+		throw std::runtime_error("Serial in was closed");
 	return c;
+}
+
+bool SerialIO::openForReading() {
+	return ((bool) INPUT) && m_keepReading.load();
+}
+
+void SerialIO::tellToStopReading() {
+	m_keepReading.store(false);
 }
 
 void SerialIO::print(const char* c) {
 	if(!OUTPUT.good())
-		throw new std::runtime_error("Serial is closed");
+		throw std::runtime_error("Serial is closed");
     OUTPUT << c;
 }
 
 void SerialIO::write(char byt) {
 	if(!OUTPUT.good())
-		throw new std::runtime_error("Serial is closed");
+		throw std::runtime_error("Serial is closed");
     OUTPUT << byt;
+}
+
+void SerialIO::flush() {
+	OUTPUT.flush();
 }

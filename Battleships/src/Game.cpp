@@ -5,6 +5,12 @@
 
 #define TAU M_PI*2
 
+ButtonState<bool> buttons = {};
+ButtonState<bool> prevButtons = {};
+ButtonState<int> framesHeld = {};
+SerialIO* global_serial_ptr;
+#define serial (*global_serial_ptr)
+
 bool clicked(int framesHeld) {
 	if(framesHeld == 1)
 		return true;
@@ -27,15 +33,10 @@ void Mode::update(ModeStack& modeStack) {
 	}
 	m_frameCount++;
 	prevButtons = buttons;
-	updateButtonState(m_serial, buttons);
-    for(int i = 0; i < 2; i++) {
-	    auto incOrNone = [&](int& val, bool inc) { val = inc ? val+1 : 0; };
-		incOrNone(framesHeld.player[i].up, buttons.player[i].up);
-		incOrNone(framesHeld.player[i].down, buttons.player[i].down);
-		incOrNone(framesHeld.player[i].left, buttons.player[i].left);
-		incOrNone(framesHeld.player[i].right, buttons.player[i].right);
-		incOrNone(framesHeld.player[i].action, buttons.player[i].action);
-		incOrNone(framesHeld.player[i].start, buttons.player[i].start);
+	updateButtonState(serial, buttons); //TODO: Handle instant pushes
+    for(int i = 0; i < BUTTON_COUNT; i++) {
+		auto& fH = framesHeld.raw[i];
+		fH = buttons.raw[i] ? fH+1 : 0;
 	}
 	update_mode(modeStack);
 }
@@ -55,17 +56,17 @@ void setPlayer1OptionColor(SerialIO& io, int optionIndex, CRGB color) {
 #define MENU_CHOICE_COLOR_2 CRGB(255, 255, 90)
 #define CHOICE_COUNT 6
 void MenuMode::init() {
-	setAllScreens(m_serial, MENU_BG);
+	setAllScreens(serial, MENU_BG);
 	m_currentChoice = 0;
     for(int i = 0; i < CHOICE_COUNT; i++)
-		setPlayer1OptionColor(m_serial, i, OPTION_BG);
+		setPlayer1OptionColor(serial, i, OPTION_BG);
 }
 
 void MenuMode::update_mode(ModeStack& modes) {
 	int prevChoice = m_currentChoice;
-    if(clicked(framesHeld.one().up))
+    if(clicked(framesHeld.one()[BUTTON_UP]))
 		m_currentChoice--;
-	if(clicked(framesHeld.one().down))
+	if(clicked(framesHeld.one()[BUTTON_DOWN]))
 		m_currentChoice++;
 
 	if(m_currentChoice < 0 || m_currentChoice >= CHOICE_COUNT) {
@@ -74,9 +75,9 @@ void MenuMode::update_mode(ModeStack& modes) {
 	}
 	else if(m_currentChoice != prevChoice) {
 		//TODO: Play sound effect
-	    setPlayer1OptionColor(m_serial, prevChoice, OPTION_BG);
+	    setPlayer1OptionColor(serial, prevChoice, OPTION_BG);
 	}
 
 	double interp = (sin(getFrameCount()/30.0*TAU)+1)/2;
-	setPlayer1OptionColor(m_serial, m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
+	setPlayer1OptionColor(serial, m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
 }

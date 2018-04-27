@@ -10,6 +10,8 @@ file(GLOB MySources src/*.cpp)
 add_executable(Battleships ${MySources})
 include_directories(PUBLIC "${CMAKE_SOURCE_DIR}")
 
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
+
 if(USE_STDIO)
   target_compile_definitions(Battleships PRIVATE "USE_STDIO")
 endif()

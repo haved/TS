@@ -72,12 +72,26 @@ def listenThread():
     for line in battleships.stdout:
         handleLine(line)
 
-def writeThread():
-    pass
+def keyAction(key, release):
+    if release:
+        battleships.stdin.write(b"BS+U");
+    else:
+        battleships.stdin.write(b"BS+D");
+    battleships.stdin.write(chr(ord('A')+key).encode('utf-8'));
+    battleships.stdin.flush()
+
+def bindKey(name, code):
+    root.bind("<"+name+">", lambda x: keyAction(code, False))
+    root.bind("<KeyRelease-"+name+">", lambda x: keyAction(code, True))
+
+keys = ["Left", "Right", "Up", "Down", "space", "Return", "A", "D", "W", "S", "Q", "1"]
+
+for i in range(len(keys)):
+    bindKey(keys[i], i)
 
 from threading import Thread
 Thread(target=listenThread, daemon=True).start()
-Thread(target=writeThread, daemon=True).start()
+#Thread(target=writeThread, daemon=True).start()
 
 root.mainloop()
 
