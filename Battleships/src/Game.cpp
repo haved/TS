@@ -78,6 +78,11 @@ void MenuMode::update_mode(ModeStack& modes) {
 	    setPlayer1OptionColor(serial, prevChoice, OPTION_BG);
 	}
 
+	if(clicked(framesHeld.one()[BUTTON_ACTION])) {
+		ModeUniquePtr gameMode(new MenuMode);
+		modes.emplace(std::move(gameMode));
+	}
+
 	double interp = (sin(getFrameCount()/30.0*TAU)+1)/2;
 	setPlayer1OptionColor(serial, m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
 }

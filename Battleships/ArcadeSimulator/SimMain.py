@@ -88,7 +88,6 @@ def keyAction(key, release):
         battleships.stdin.write(b"BS+D");
     battleships.stdin.write(chr(ord('A')+key).encode('utf-8'));
     battleships.stdin.flush()
-    print("Pressed:", keys[key])
 
 def bindKey(name, code):
     root.bind("<"+name+">", lambda x: keyAction(code, False))
