@@ -8,25 +8,41 @@ void sendColorChannels(SerialIO& io, CRGB color) {
 	io.write(color.b);
 }
 
-void sendColor(SerialIO& io, Player p, Screen s, int x, int y, CRGB color) {
-    io.print("BS+P"); //P for player
-	io.write(p == Player::ONE ? '1' : '2');
-	io.write(s == Screen::ATTACK ? 'A' : 'D');
-	io.write('S'); //Single tile
-	io.write('0'+x);
-	io.write('0'+y);
+void sendPlayerAndScreen(SerialIO& io, Player p, Screen s) {
+	char c = 'A';
+	if(p == Player::TWO)
+		c+=2;
+	if(s == Screen::DEFENSE)
+		c+=1;
+	io.write(c);
+}
+
+void sendXY(SerialIO& io, int x, int y) {
+	io.write('0'+(x+y*WIDTH));
+}
+
+void setSingleTile(SerialIO& io, Player p, Screen s, int x, int y, CRGB color) {
+    io.print(">S");
+	sendPlayerAndScreen(io, p, s);
+    sendXY(io, x, y);
 	sendColorChannels(io, color);
-	io.write('\n');
+	io.flush();
+}
+
+void setRect(SerialIO& io, Player p, Screen s, int x, int y, int width, int height, CRGB color) {
+    io.print(">R");
+	sendPlayerAndScreen(io, p, s);
+	sendXY(io, x, y);
+	sendXY(io, width, height);
+	sendColorChannels(io, color);
 	io.flush();
 }
 
 void setAllScreens(SerialIO& io, CRGB color) {
-	io.print("BS+F"); //F for fill (every screen)
+	io.print(">F"); //F for fill (every screen)
 	sendColorChannels(io, color);
-	io.write('\n');
 	io.flush();
 }
-
 
 ButtonState<bool> threaded_buttonState;
 std::mutex buttonStateMutex;
@@ -37,8 +53,8 @@ void updateButtonState(SerialIO& io, ButtonState<bool>& state) {
 }
 
 void threadedListeningFunc(SerialIO* io) {
-	while(io->openForReading()) {
-		if(io->find("BS+")) {
+	while(io->isOpenForReading()) {
+		if(io->waitForByte() == '>') {
 			bool down = io->waitForByte()=='D';
 			char byt = io->waitForByte();
 			std::lock_guard<std::mutex> stateLock(buttonStateMutex);

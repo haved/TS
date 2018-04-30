@@ -3,27 +3,11 @@
 #include <memory>
 
 #include "SerialIO.hpp"
-
-#define WIDTH 10
-#define HEIGHT 10
-
-#define BUTTON_COUNT 12
-#define BUTTON_LEFT 0
-#define BUTTON_RIGHT 1
-#define BUTTON_UP 2
-#define BUTTON_DOWN 3
-#define BUTTON_ACTION 4
-#define BUTTON_START 5
-#define PLAYER_2_BUTTONS_OFFSET 6
+#include "Util.hpp"
+#include "ArduinoEncoder.hpp"
 
 extern SerialIO* global_serial_ptr;
 
-template<typename T>
-struct ButtonState {
-	T raw[BUTTON_COUNT];
-	auto one() { return &raw[0]; }
-	auto two() { return &raw[PLAYER_2_BUTTONS_OFFSET]; }
-};
 bool clicked(int framesHeld);
 
 class Mode;
@@ -41,7 +25,8 @@ protected:
 	virtual void update_mode(ModeStack& modeStack)=0;
 public:
 	virtual ~Mode();
-	virtual void init()=0;
+	virtual void init(){};
+	virtual void onFocus(){};
 	void update(ModeStack& modeStack);
 	long long getFrameCount();
 };
@@ -50,5 +35,36 @@ class MenuMode : public Mode {
 	int m_currentChoice;
 public:
 	void init() override;
+	void onFocus() override;
+	void update_mode(ModeStack& mode) override;
+};
+
+class PlaceShipsMode : public Mode {
+public:
+    void onFocus() override;
+	void update_mode(ModeStack& mode) override;
+};
+
+class GameMode : public Mode {
+public:
+	void init() override;
+	void onFocus() override;
+	void update_mode(ModeStack& mode) override;
+};
+
+class TransitionMode : public Mode {
+	CRGB from;
+	CRGB to;
+	int frames;
+public:
+	TransitionMode(CRGB from, CRGB to, int frames);
+    void update_mode(ModeStack& mode) override;
+};
+
+class InGameMenu : public Mode {
+	Player player;
+public:
+	InGameMenu(Player player) : player(player) {}
+	void onFocus() override;
 	void update_mode(ModeStack& mode) override;
 };

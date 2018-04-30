@@ -15,4 +15,3 @@ extern CRGB BLUE;
 extern CRGB BLACK;
 
 CRGB interpolate(CRGB a, CRGB b, double x);
-

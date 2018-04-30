@@ -38,54 +38,72 @@ def updateColors():
             for y in range(HEIGHT):
                 canvas.itemconfig(screens[i][x][y], fill=colorTupleToText(colors[i][x][y]))
 
-def getScreenIndex(player, attack):
-    return (1 if attack else 0) if player == 1 else (2 if attack else 3)
+def getInternalScreenIndex(player, attack):
+    return (2 if attack else 3) if player == 1 else (1 if attack else 0)
 
-def getScreenCoord(screenIndex, x, y):
-    if screenIndex in (0, 1):
-        x = WIDTH-x;
-    if screenIndex % 2 == 0: #y on the bottom
-        y = HEIGHT-y;
+def getInternalScreenCoord(screenIndex, x, y):
+    if screenIndex in (0, 1): #The player two screens has x=0 to the right
+        x = WIDTH-1-x;
+    if screenIndex % 2 == 0: #y 0 is always between attack and defend
+        y = HEIGHT-1-y;
     return (x,y)
-
-def readColor(txt):
-    return (txt[0], txt[1], txt[2])
-
-def handleLine(line):
-    global colors
-    if line.startswith(b"BS+P"):
-        playerNum = int(line[4])
-        attack = line[5]==ord('A') #Screen 1 or 2
-        if line[6] == ord('S'): #Single tile
-            x = line[7]-ord('0')
-            y = line[8]-ord('0')
-            color = readColor(line[9:9+3])
-            scrIndx = getScreenIndex(playerNum, attack)
-            x,y=getScreenCoord(scrIndx, x, y)
-            colors[scrIndx][x][y] = color
-            #print("Set: colors", getScreenIndex(playerNum, attack), x, y, " to ", color)
-        else:
-            print("Garbo: ", line)
-    elif line.startswith(b"BS+F"): #Fill
-        color = readColor(line[4:4+3])
-        colors = [[[color for y in range(HEIGHT)] for x in range(WIDTH)] for i in range(4)]
-    else:
-        print("Got a garbage line:", line)
-        return
-    root.after(0, updateColors)
 
 from subprocess import Popen, PIPE
 battleships = Popen([exec_name], stdout=PIPE, stdin=PIPE)
 
 def listenThread():
-    for line in battleships.stdout:
-        handleLine(line)
+    global colors
+
+    def getByt():
+        return battleships.stdout.read(1)
+    def readXY():
+        byt = getByt()[0]-ord('0')
+        x = byt % WIDTH
+        y = byt // WIDTH
+        return (x, y)
+    def readColor():
+        return (getByt()[0], getByt()[0], getByt()[0])
+    def readScreen():
+        byt = getByt()[0]-ord('A')
+        player = 2 if byt >= 2 else 1
+        attack = byt % 2 == 0
+        return (player, attack)
+
+    while True:
+        byt = getByt()
+        if byt == b"": #Out of input
+            break
+        if byt != b">":
+            continue
+        byt = getByt()
+        if byt == b"S": #Set single tile
+            player, attack = readScreen()
+            x, y = readXY()
+            color = readColor()
+            intScreenInx = getInternalScreenIndex(player, attack)
+            x, y = getInternalScreenCoord(intScreenInx, x, y)
+            colors[intScreenInx][x][y] = color
+        elif byt == b"R": #Set rectangle
+            player, attack = readScreen()
+            x1, y1 = readXY()
+            width, height = readXY()
+            color = readColor()
+            intScreenInx = getInternalScreenIndex(player, attack)
+            for X in range(x1, x1+width):
+                for Y in range(y1, y1+height):
+                    x_, y_ = getInternalScreenCoord(intScreenInx, X, Y)
+                    colors[intScreenInx][x_][y_] = color
+        elif byt == b"F": #Fill all screens
+            color = readColor()
+            colors = [[[color for _ in range(HEIGHT)] for _ in range(WIDTH)] for _ in range(4)]
+        root.after(0, updateColors)
+
 
 def keyAction(key, release):
     if release:
-        battleships.stdin.write(b"BS+U");
+        battleships.stdin.write(b">U");
     else:
-        battleships.stdin.write(b"BS+D");
+        battleships.stdin.write(b">D");
     battleships.stdin.write(chr(ord('A')+key).encode('utf-8'));
     battleships.stdin.flush()
 
