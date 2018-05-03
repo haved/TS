@@ -97,7 +97,7 @@ void MenuMode::update_mode(ModeStack& modes) {
 	if(clicked(framesHeld.one()[BUTTON_ACTION] || clicked(framesHeld.one()[BUTTON_START]))) {
 		if(m_currentChoice == NEW_2P_GAME_CHOICE) {
 		    modes.emplace_back(ModeUniquePtr(new PlaceShipsMode));
-			modes.emplace_back(ModeUniquePtr(new TransitionMode(30, true)));
+			modes.emplace_back(ModeUniquePtr(new TransitionMode(20, true)));
 		} else
 			; //TODO Add the other options
 	}

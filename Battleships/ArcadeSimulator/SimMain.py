@@ -46,7 +46,6 @@ def overrideCurrentWriteBuffer(newBuffer):
         colors = newBuffer
 
 def colorTupleToText(color):
-    print("Color is: ", color)
     return "#"+"".join('{:02x}'.format(ch) for ch in color)
 
 def interpolate(color1, color2, x):
@@ -127,11 +126,12 @@ def listenThread():
                 continue
             writeToSecondBuffer = False
             frames = getByt()[0];
-            for i in range(1, frames+1):
+            for i in range(0, frames):
                 for s in range(4):
                     for x in range(WIDTH):
                         for y in range(HEIGHT):
-                            colors[s][x][y] = interpolate(colors[s][x][y], doubleBuffer[s][x][y], i/frames)
+                            inter = (frames-i-1)/(frames-i)
+                            colors[s][x][y] = interpolate(colors[s][x][y], doubleBuffer[s][x][y], 1-inter)
                 root.after(0, updateColors)
                 sleep(1/60)
             sendTransitionDone()
