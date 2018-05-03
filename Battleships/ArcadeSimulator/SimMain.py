@@ -2,6 +2,7 @@
 
 from tkinter import *
 from sys import argv
+from time import sleep
 
 exec_name = argv[1]
 
@@ -28,9 +29,29 @@ def makeScreen(x_, y_):
 screens = [makeScreen(MARGIN, MARGIN+(MARGIN+TILE_SIZE*HEIGHT)*i) for i in range(4)]
 
 colors = [[[(0,0,0) for y in range(HEIGHT)] for x in range(WIDTH)] for i in range(4)]
+writeToSecondBuffer = False
+doubleBuffer = []
+
+def getCurrentWriteBuffer():
+    if writeToSecondBuffer:
+        return doubleBuffer
+    else:
+        return colors
+
+def overrideCurrentWriteBuffer(newBuffer):
+    global doubleBuffer, colors
+    if writeToSecondBuffer:
+        doubleBuffer = newBuffer
+    else:
+        colors = newBuffer
 
 def colorTupleToText(color):
+    print("Color is: ", color)
     return "#"+"".join('{:02x}'.format(ch) for ch in color)
+
+def interpolate(color1, color2, x):
+    y = 1-x
+    return (int(color1[0]*y+color2[0]*x), int(color1[1]*y+color2[1]*x), int(color1[2]*y+color2[2]*x))
 
 def updateColors():
     for i in range(4):
@@ -52,7 +73,7 @@ from subprocess import Popen, PIPE
 battleships = Popen([exec_name], stdout=PIPE, stdin=PIPE)
 
 def listenThread():
-    global colors
+    global writeToSecondBuffer
 
     def getByt():
         return battleships.stdout.read(1)
@@ -82,7 +103,7 @@ def listenThread():
             color = readColor()
             intScreenInx = getInternalScreenIndex(player, attack)
             x, y = getInternalScreenCoord(intScreenInx, x, y)
-            colors[intScreenInx][x][y] = color
+            getCurrentWriteBuffer()[intScreenInx][x][y] = color
         elif byt == b"R": #Set rectangle
             player, attack = readScreen()
             x1, y1 = readXY()
@@ -92,12 +113,32 @@ def listenThread():
             for X in range(x1, x1+width):
                 for Y in range(y1, y1+height):
                     x_, y_ = getInternalScreenCoord(intScreenInx, X, Y)
-                    colors[intScreenInx][x_][y_] = color
+                    getCurrentWriteBuffer()[intScreenInx][x_][y_] = color
         elif byt == b"F": #Fill all screens
             color = readColor()
-            colors = [[[color for _ in range(HEIGHT)] for _ in range(WIDTH)] for _ in range(4)]
-        root.after(0, updateColors)
+            overrideCurrentWriteBuffer([[[color for _ in range(HEIGHT)] for _ in range(WIDTH)] for _ in range(4)])
+        elif byt == b"D":
+            if not writeToSecondBuffer:
+                root.after(0, updateColors)
+        elif byt == b"B": #Use second buffer
+            writeToSecondBuffer = True
+        elif byt == b"T": #Start transition to DB
+            if not writeToSecondBuffer:
+                continue
+            writeToSecondBuffer = False
+            frames = getByt()[0];
+            for i in range(1, frames+1):
+                for s in range(4):
+                    for x in range(WIDTH):
+                        for y in range(HEIGHT):
+                            colors[s][x][y] = interpolate(colors[s][x][y], doubleBuffer[s][x][y], i/frames)
+                root.after(0, updateColors)
+                sleep(1/60)
+            sendTransitionDone()
 
+def sendTransitionDone():
+    battleships.stdin.write(b">T");
+    battleships.stdin.flush()
 
 def keyAction(key, release):
     if release:

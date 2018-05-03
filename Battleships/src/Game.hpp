@@ -1,5 +1,5 @@
 #pragma once
-#include <stack>
+#include <vector>
 #include <memory>
 
 #include "SerialIO.hpp"
@@ -15,7 +15,7 @@ struct ModeDeleter {
 	void operator()(Mode* mode);
 };
 using ModeUniquePtr = std::unique_ptr<Mode, ModeDeleter>;
-using ModeStack = std::stack<ModeUniquePtr>;
+using ModeStack = std::vector<ModeUniquePtr>;
 
 class Mode {
 private:
@@ -40,6 +40,8 @@ public:
 };
 
 class PlaceShipsMode : public Mode {
+	int m_p1State;
+	int m_p2State;
 public:
     void onFocus() override;
 	void update_mode(ModeStack& mode) override;
@@ -53,11 +55,12 @@ public:
 };
 
 class TransitionMode : public Mode {
-	CRGB from;
-	CRGB to;
-	int frames;
+	int m_frames;
+    bool m_viaBlack;
+	bool m_started;
 public:
-	TransitionMode(CRGB from, CRGB to, int frames);
+	TransitionMode(int frames, bool viaBlack);
+	void onFocus() override;
     void update_mode(ModeStack& mode) override;
 };
 

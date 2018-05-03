@@ -27,7 +27,6 @@ enum class Screen:int {
 #define BUTTON_START 5
 #define PLAYER_2_BUTTONS_OFFSET 6
 
-
 template<typename T>
 struct ButtonState {
 	T raw[BUTTON_COUNT];
@@ -42,5 +41,12 @@ void setRect(SerialIO& io, Player p, Screen s, int x, int y, int width, int heig
 
 void setAllScreens(SerialIO& serial, CRGB color);
 
-void updateButtonState(SerialIO& io, ButtonState<bool>& state);
+void displayScreens(SerialIO& serial);
+
+void chooseDoubleBuffer(SerialIO& serial);
+
+void startTransitionToDoubleBuffer(SerialIO& serial, int frames);
+bool recieveTransitionDone();
+
+void updateButtonState(ButtonState<bool>& state);
 std::thread startListeningThread(SerialIO* io);
