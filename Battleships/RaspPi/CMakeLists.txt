@@ -10,6 +10,12 @@ file(GLOB MySources src/*.cpp)
 add_executable(Battleships ${MySources})
 include_directories(PUBLIC "${CMAKE_SOURCE_DIR}")
 
+find_package(PkgConfig REQUIRED)
+pkg_search_module(SDL2_mixer REQUIRED SDL2_mixer)
+INCLUDE_DIRECTORIES(${SDL2_mixer_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(Battleships ${SDL2_mixer_LIBRARIES})
+
+
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 
 if(USE_STDIO)

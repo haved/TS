@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include "ArduinoEncoder.hpp"
+#include "AudioSystem.hpp"
 #include <cassert>
 #include <cmath>
 
@@ -86,16 +87,17 @@ void MenuMode::update_mode(ModeStack& modes) {
 		m_currentChoice++;
 
 	if(m_currentChoice < 0 || m_currentChoice >= MENU_CHOICE_COUNT) {
-		//TODO: Play error beep
+		playSound("res/Sounds/scroll_wall.wav");
 		m_currentChoice = prevChoice; //Revert
 	}
 	else if(m_currentChoice != prevChoice) {
-		//TODO: Play sound effect
+	    playSound("res/Sounds/hover_option.wav");
 	    setPlayer1OptionColor(serial, prevChoice, OPTION_BG);
 	}
 
 	if(clicked(framesHeld.one()[BUTTON_ACTION] || clicked(framesHeld.one()[BUTTON_START]))) {
 		if(m_currentChoice == NEW_2P_GAME_CHOICE) {
+			playSound("res/Sounds/option_selected.wav");
 		    modes.emplace_back(ModeUniquePtr(new PlaceShipsMode));
 			modes.emplace_back(ModeUniquePtr(new TransitionMode(20, true)));
 		} else

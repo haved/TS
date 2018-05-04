@@ -5,9 +5,12 @@
 #include <chrono>
 #include <thread>
 #include "ArduinoEncoder.hpp"
+#include "AudioSystem.hpp"
 
 int main() {
 	std::cout << "Battleships running!" << std::endl;
+
+	startAudioSystem();
 
 	SerialIO serialIO;
 	global_serial_ptr = &serialIO;
@@ -25,6 +28,8 @@ int main() {
 
 	serialIO.tellToStopReading();
 	readingThread.join();
+
+	stopAudioSystem();
 
 	std::cout << "Battleships ended" << std::endl;
 }

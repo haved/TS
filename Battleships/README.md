@@ -10,8 +10,9 @@ If you want to run a Pi, auto-execute `./pullAndRunForever.sh` from the same fol
 ### Dependencies
 For Raspberry Pi:
  - Cmake
- - C++11
- - SDL_mixer
+ - C++14
+ - pthreads
+ - sdl2_mixer
 
 For Arduino:
  - Arduino IDE
