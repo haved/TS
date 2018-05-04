@@ -163,7 +163,9 @@ void PlaceShipsMode::onFocus() {
 
 void PlaceShipsMode::update_mode(ModeStack& modes) {
 	if(clicked(framesHeld.one()[BUTTON_START])) {
+		playSound("res/Sounds/option_selected.wav");
 		modes.emplace_back(ModeUniquePtr(new GameMode)); //TODO: Pass ship data
+		modes.emplace_back(ModeUniquePtr(new TransitionMode(20, false)));
 		return;
 	}
 
@@ -177,13 +179,18 @@ void GameMode::init() {
 void GameMode::onFocus() {
 	setAllScreens(serial, GAME_BG);
 	displayScreens(serial);
+	//TODO: Play music
 }
 
 void GameMode::update_mode(ModeStack& modes) {
-	if(clicked(framesHeld.one()[BUTTON_START]))
+	if(clicked(framesHeld.one()[BUTTON_START])) {
+		playSound("res/Sounds/pause.wav");
 		modes.emplace_back(ModeUniquePtr(new InGameMenu(Player::ONE)));
-	if(clicked(framesHeld.two()[BUTTON_START]))
+	}
+	if(clicked(framesHeld.two()[BUTTON_START])) {
+		playSound("res/Sounds/pause.wav");
 		modes.emplace_back(ModeUniquePtr(new InGameMenu(Player::TWO)));
+	}
 }
 
 TransitionMode::TransitionMode(int frames, bool viaBlack) : m_frames(frames), m_viaBlack(viaBlack), m_started(false) {
@@ -233,6 +240,8 @@ void InGameMenu::onFocus() {
 
 void InGameMenu::update_mode(ModeStack& modes) {
 	int button = BUTTON_START + (player == Player::TWO ? PLAYER_2_BUTTONS_OFFSET : 0);
-	if(clicked(framesHeld.raw[button]))
+	if(clicked(framesHeld.raw[button])) {
+		playSound("res/Sounds/resume.wav");
 		modes.pop_back();
+	}
 }
