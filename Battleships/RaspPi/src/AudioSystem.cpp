@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <map>
+#include <cstring>
 
 //Plagiarism from: https://gist.github.com/armornick/3497064
 
@@ -41,7 +42,14 @@ void playSound(const char* PATH) {
 
 std::map<const char*, Mix_Music*> musics;
 
+const char* currentMusic;
 void loopMusic(const char* PATH) {
+
+	if(currentMusic && strcmp(PATH, currentMusic) == 0) {
+		resumeMusic();
+		return;
+	}
+
 	Mix_Music* music;
 	auto find = musics.find(PATH);
 	if(find == musics.end()) {
@@ -55,6 +63,7 @@ void loopMusic(const char* PATH) {
 	int result = Mix_PlayMusic(music, -1); //inf loops
 	if(result == -1)
 		ERROR("Mix_PlayMusic failed: '" << PATH << "': " << Mix_GetError());
+	currentMusic = PATH;
 }
 
 void pauseMusic() {
@@ -67,6 +76,7 @@ void resumeMusic() {
 
 void stopMusic() {
 	Mix_FadeOutMusic(1000); //One second fade out
+	currentMusic = nullptr;
 }
 
 void pauseSoundEffects() {

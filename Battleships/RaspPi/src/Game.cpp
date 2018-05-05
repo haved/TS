@@ -173,13 +173,12 @@ void PlaceShipsMode::update_mode(ModeStack& modes) {
 }
 
 void GameMode::init() {
-	
 }
 
 void GameMode::onFocus() {
 	setAllScreens(serial, GAME_BG);
 	displayScreens(serial);
-	//TODO: Play music
+    loopMusic("res/Music/battle_music.mp3");
 }
 
 void GameMode::update_mode(ModeStack& modes) {
@@ -225,6 +224,7 @@ void TransitionMode::update_mode(ModeStack& modes) {
 
 #define INGAME_MENU_BORDER CRGB(255, 100, 0)
 void InGameMenu::onFocus() {
+	pauseMusic();
     auto drawBorder = [&](Player player, Screen screen) {
 		setRect(serial, player, screen, 0, 0, WIDTH-1, 1, INGAME_MENU_BORDER);
 		setRect(serial, player, screen, WIDTH-1, 0, 1, HEIGHT-1, INGAME_MENU_BORDER);
