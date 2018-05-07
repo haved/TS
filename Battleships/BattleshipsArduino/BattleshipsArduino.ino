@@ -7,10 +7,8 @@
 #define DATA_PIN_MIN 24
 #define SCREEN_COUNT 4
 
-//First player, then attack or defend
-const int SCREEN[2][2] = {{0, 1}, {2, 3}};
 #define PLAYER1 0
-#define PLAYER2 1
+#define PLAYER2 2
 #define ATK 0
 #define DEF 1
 
@@ -20,7 +18,7 @@ CRGB leds[SCREEN_COUNT][LED_COUNT];
 #define BUTTON_COUNT 12
 #define P2_BTN_OFFSET 6
 
-const char BTN_CODE[] = {'U', 'D', 'L', 'R', 'A', 'S'};
+//Buttons go like this: //TODO: Check C++
 
 #define IO Serial
 
@@ -62,7 +60,7 @@ CRGB readColor() {
 }
 
 void loop() {
-  if(IO.find("BS+")) {
+  /*if(IO.find(">")) {
     int c = waitForChar();
     if(c == 'P') {
       int playerId = waitForChar() == '1' ? PLAYER1 : PLAYER2;
@@ -85,7 +83,7 @@ void loop() {
   for(int i = 0; i < BUTTON_COUNT; i++) {
     bool state = digitalRead(BUTTON_PIN_MIN+i);
     if(state != prevButtons[i]) {
-      IO.print("BS+BTN ");
+      IO.print("BS+BTN "); //TODO: New protocol
       IO.print(state ? "DWN": "REL");
       IO.print(' ');
       if(i >= P2_BTN_OFFSET) {
@@ -98,5 +96,5 @@ void loop() {
       }
       prevButtons[i] = state;
     }
-  }
+  }*/
 }

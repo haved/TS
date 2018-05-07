@@ -29,21 +29,23 @@ def makeScreen(x_, y_):
 screens = [makeScreen(MARGIN, MARGIN+(MARGIN+TILE_SIZE*HEIGHT)*i) for i in range(4)]
 
 colors = [[[(0,0,0) for y in range(HEIGHT)] for x in range(WIDTH)] for i in range(4)]
-writeToSecondBuffer = False
-doubleBuffer = []
+transitionFrom = [None for _ in range(4)]
+transitionsTo = [None for _ in range(4)]
 
-def getCurrentWriteBuffer():
-    if writeToSecondBuffer:
-        return doubleBuffer
-    else:
-        return colors
+transitionProgress = [0 for _ in range(4)]
+transitionGoal = [0 for _ in range(4)]
 
-def overrideCurrentWriteBuffer(newBuffer):
-    global doubleBuffer, colors
-    if writeToSecondBuffer:
-        doubleBuffer = newBuffer
+def getBufferForScreen(internScreenIndex):
+    if transitionProgress[internScreenIndex] < transitionGoal[internScreenIndex]:
+        return transitionsTo[internScreenIndex]
     else:
-        colors = newBuffer
+        return colors[internScreenIndex]
+
+def overrideBufferForScreen(internScreenIndex, newBuffer):
+    if transitionProgress[internScreenIndex] < transitionGoal[internScreenIndex]:
+        transitionsTo[internScreenIndex] = newBuffer
+    else:
+        colors[internScreenIndex] = newBuffer
 
 def colorTupleToText(color):
     return "#"+"".join('{:02x}'.format(ch) for ch in color)
@@ -71,39 +73,34 @@ def getInternalScreenCoord(screenIndex, x, y):
 from subprocess import Popen, PIPE
 battleships = Popen([exec_name], stdout=PIPE, stdin=PIPE)
 
-def listenThread():
-    global writeToSecondBuffer
-
-    def getByt():
+def getByt():
         return battleships.stdout.read(1)
-    def readXY():
-        byt = getByt()[0]-ord('0')
-        x = byt % WIDTH
-        y = byt // WIDTH
-        return (x, y)
-    def readColor():
-        return (getByt()[0], getByt()[0], getByt()[0])
-    def readScreen():
-        byt = getByt()[0]-ord('A')
-        player = 2 if byt >= 2 else 1
-        attack = byt % 2 == 0
-        return (player, attack)
+def readXY():
+    byt = getByt()[0]-ord('0')
+    x = byt % WIDTH
+    y = byt // WIDTH
+    return (x, y)
+def readColor():
+    return (getByt()[0], getByt()[0], getByt()[0])
+def readScreen():
+    byt = getByt()[0]-ord('A')
+    player = 2 if byt >= 2 else 1
+    attack = byt % 2 == 0
+    return (player, attack)
 
+def handleInput():
     while True:
-        byt = getByt()
-        if byt == b"": #Out of input
-            break
-        if byt != b">":
-            continue
-        byt = getByt()
-        if byt == b"S": #Set single tile
+        cmd = getByt()
+        if cmd == b'':
+            exit(0)
+        elif cmd == b"S": #Set single tile
             player, attack = readScreen()
             x, y = readXY()
             color = readColor()
             intScreenInx = getInternalScreenIndex(player, attack)
             x, y = getInternalScreenCoord(intScreenInx, x, y)
-            getCurrentWriteBuffer()[intScreenInx][x][y] = color
-        elif byt == b"R": #Set rectangle
+            getBufferForScreen(intScreenInx)[x][y] = color
+        elif cmd == b"R": #Set rectangle
             player, attack = readScreen()
             x1, y1 = readXY()
             width, height = readXY()
@@ -112,31 +109,55 @@ def listenThread():
             for X in range(x1, x1+width):
                 for Y in range(y1, y1+height):
                     x_, y_ = getInternalScreenCoord(intScreenInx, X, Y)
-                    getCurrentWriteBuffer()[intScreenInx][x_][y_] = color
-        elif byt == b"F": #Fill all screens
+                    getBufferForScreen(intScreenInt)[x_][y_] = color
+        elif cmd == b"F": #Fill all screens
             color = readColor()
-            overrideCurrentWriteBuffer([[[color for _ in range(HEIGHT)] for _ in range(WIDTH)] for _ in range(4)])
-        elif byt == b"D":
-            if not writeToSecondBuffer:
-                root.after(0, updateColors)
-        elif byt == b"B": #Use second buffer
-            writeToSecondBuffer = True
-        elif byt == b"T": #Start transition to DB
-            if not writeToSecondBuffer:
-                continue
-            writeToSecondBuffer = False
-            frames = getByt()[0];
-            for i in range(0, frames):
-                for s in range(4):
-                    for x in range(WIDTH):
-                        for y in range(HEIGHT):
-                            inter = (frames-i-1)/(frames-i)
-                            colors[s][x][y] = interpolate(colors[s][x][y], doubleBuffer[s][x][y], 1-inter)
-                root.after(0, updateColors)
-                sleep(1/60)
-            sendTransitionDone()
+            for i in range(4):
+                overrideBufferForScreen(i, [[color for _ in range(HEIGHT)] for _ in range(WIDTH)])
+        elif cmd == b"T": #Start transition
+            player, attack = readScreen()
+            inx = getInternalScreenIndex(player, attack)
+            transitionFrom[inx] = colors[inx]
+            transitionProgress[inx] = 0
+            transitionGoal[inx] = getByt()[0]
+        elif cmd == b'\n':
+            break
 
-def sendTransitionDone():
+
+def listenThread():
+    exiting = False
+    def renderLoop():
+        while True:
+            time.sleep(1/60)
+            if exiting:
+                handleInput()
+                exiting = False #handleInput goes until the '\n' signal
+            elif sum(transitionGoal) == 0:
+                continue #Nothing exiting going on
+
+            for inx in range(4):
+                goal = transitionGoal[inx]
+                if goal != 0:
+                    transitionProgress[inx]+=1
+                    frac = transitionProgress[inx]/goal
+                    colors[inx] = [[interpolate(transitionFrom[inx][x][y], transitionTo[inx][x][y], frac) for y in range(HEIGHT)] for x in range(WIDTH)]
+                    if transitionProgress[inx] == goal:
+                        transitionGoal[inx] = 0
+                        if sum(transitionGoal) == 0:
+                            sendAllTransitionDone()
+
+            root.after(0, updateColors)
+
+    Thread(target=renderLoop, daemon=True).start()
+    while True:
+        if exiting:
+            time.sleep(1/60)
+            continue
+        if getByt() == b'>':
+            exiting = True
+
+
+def sendAllTransitionDone():
     battleships.stdin.write(b">T");
     battleships.stdin.flush()
 
@@ -159,7 +180,6 @@ for i in range(len(keys)):
 
 from threading import Thread
 Thread(target=listenThread, daemon=True).start()
-#Thread(target=writeThread, daemon=True).start()
 
 root.mainloop()
 

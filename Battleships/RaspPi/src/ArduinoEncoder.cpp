@@ -2,81 +2,98 @@
 #include <atomic>
 #include <mutex>
 #include <cassert>
+#include <iostream>
 
-void sendColorChannels(SerialIO& io, CRGB color) {
-	io.write(color.r);
-	io.write(color.g);
-	io.write(color.b);
+#define ERROR(s) do { std::cerr << "ArduinoEncoder: " << __LINE__ << ": " << s << std::endl; return; } while(false)
+
+SerialIO* global_serial_ptr;
+
+void sendColorChannels(CRGB color) {
+	serial.write(color.r);
+	serial.write(color.g);
+	serial.write(color.b);
 }
 
-void sendPlayerAndScreen(SerialIO& io, Player p, Screen s) {
+void sendPlayerAndScreen(Player p, Screen s) {
 	char c = 'A';
 	if(p == Player::TWO)
 		c+=2;
 	if(s == Screen::DEFENSE)
 		c+=1;
-	io.write(c);
+	serial.write(c);
 }
 
-void sendXY(SerialIO& io, int x, int y) {
+void sendXY(int x, int y) {
 	assert(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT);
-	io.write('0'+(x+y*WIDTH));
+	serial.write('0'+(x+y*WIDTH));
 }
 
-void setSingleTile(SerialIO& io, Player p, Screen s, int x, int y, CRGB color) {
-    io.print(">S");
-	sendPlayerAndScreen(io, p, s);
-    sendXY(io, x, y);
-	sendColorChannels(io, color);
-	io.flush();
+bool started = false;
+void startUpdate() {
+	if(started)
+		ERROR("Already started command");
+	started = true;
+	serial.write('>');
 }
 
-void setRect(SerialIO& io, Player p, Screen s, int x, int y, int width, int height, CRGB color) {
+void assureStarted() {
+	if(!started)
+		startUpdate();
+}
+
+void setSingleTile(Player p, Screen s, int x, int y, CRGB color) {
+	assureStarted();
+    serial.write('S');
+	sendPlayerAndScreen(p, s);
+    sendXY(x, y);
+	sendColorChannels(color);
+}
+
+void setRect(Player p, Screen s, int x, int y, int width, int height, CRGB color) {
 	if(width == 0 || height == 0)
 		return;
 	assert(width > 0 && height > 0 && x+width<=WIDTH && y+height<=HEIGHT);
-	io.print(">R");
-	sendPlayerAndScreen(io, p, s);
-	sendXY(io, x, y);
-	sendXY(io, width, height);
-	sendColorChannels(io, color);
-	io.flush();
+	assureStarted();
+	serial.write('R');
+	sendPlayerAndScreen(p, s);
+	sendXY(x, y);
+	sendXY(width, height);
+	sendColorChannels(color);
 }
 
-void setAllScreens(SerialIO& io, CRGB color) {
-	io.print(">F"); //F for fill (every screen)
-	sendColorChannels(io, color);
-	io.flush();
+void setAllScreens(CRGB color) {
+	assureStarted();
+	serial.write('F'); //F for fill (every screen)
+	sendColorChannels(color);
 }
 
-void displayScreens(SerialIO& io) {
-	io.print(">D");
-	io.flush();
-}
-
-void chooseDoubleBuffer(SerialIO& serial) {
-	serial.print(">B");
+void commitUpdate() {
+	if(!started)
+		ERROR("Commiting command that was never started");
+	serial.write('\n');
 	serial.flush();
+	started = false;
 }
 
-bool transitionDone=false;
+std::mutex inputMutex;
+bool transitionsRunning;
 
-void startTransitionToDoubleBuffer(SerialIO& serial, int frames) {
-	serial.print(">T");
+void startTransition(Player p, Screen s, int frames) {
+	std::lock_guard<std::mutex> stateLock(inputMutex);
+
+	serial.write('T');
+    sendPlayerAndScreen(p, s);
+	assert(frames > 0 && frames < 256);
 	serial.write(frames);
-	serial.flush();
+
+	transitionsRunning = true;
 }
 
 ButtonState<bool> threaded_buttonState;
-std::mutex inputMutex;
 
-bool recieveTransitionDone() {
+bool anyTransitionsRunning() {
 	std::lock_guard<std::mutex> stateLock(inputMutex);
-	if(transitionDone) {
-		transitionDone = false;
-		return true;
-	}
-	return false;
+	return transitionsRunning;
 }
 
 void updateButtonState(ButtonState<bool>& state) {
@@ -90,7 +107,7 @@ void threadedListeningFunc(SerialIO* io) {
 			char c = io->waitForByte();
 			if(c == 'T') {
 				std::lock_guard<std::mutex> stateLock(inputMutex);
-				transitionDone = true;
+				transitionsRunning = false;
 			} else {
 				bool down = c == 'D';
 				char byt = io->waitForByte();

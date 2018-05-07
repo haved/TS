@@ -6,8 +6,6 @@
 #include "Util.hpp"
 #include "ArduinoEncoder.hpp"
 
-extern SerialIO* global_serial_ptr;
-
 bool clicked(int framesHeld);
 
 class Mode;

@@ -9,8 +9,6 @@
 ButtonState<bool> buttons = {};
 ButtonState<bool> prevButtons = {};
 ButtonState<int> framesHeld = {};
-SerialIO* global_serial_ptr;
-#define serial (*global_serial_ptr)
 
 bool clicked(int framesHeld) {
 	if(framesHeld == 1)
