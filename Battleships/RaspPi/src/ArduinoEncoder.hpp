@@ -21,14 +21,15 @@ enum class Screen:int {
 	DEFENSE=1
 };
 
-#define BUTTON_COUNT 12
+#define PLAYER_2_BUTTONS_OFFSET 7
+#define BUTTON_COUNT PLAYER_2_BUTTONS_OFFSET*2
 #define BUTTON_LEFT 0
 #define BUTTON_RIGHT 1
 #define BUTTON_UP 2
 #define BUTTON_DOWN 3
-#define BUTTON_ACTION 4
-#define BUTTON_START 5
-#define PLAYER_2_BUTTONS_OFFSET 6
+#define BUTTON_A 4
+#define BUTTON_B 5
+#define BUTTON_MENU 6
 
 template<typename T>
 struct ButtonState {

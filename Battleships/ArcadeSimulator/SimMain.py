@@ -161,7 +161,6 @@ def listenThread():
             sendReadyForCommands()
 
 
-
 def sendReadyForCommands():
     battleships.stdin.write(b">>")
     battleships.stdin.flush()
@@ -182,7 +181,7 @@ def bindKey(name, code):
     root.bind("<"+name+">", lambda x: keyAction(code, False))
     root.bind("<KeyRelease-"+name+">", lambda x: keyAction(code, True))
 
-keys = ["Left", "Right", "Up", "Down", "space", "Return", "a", "d", "w", "s", "e", "t"]
+keys = ["Left", "Right", "Up", "Down", "space", "Return", "BackSpace", "a", "d", "w", "s", "e", "q", "Escape"]
 
 for i in range(len(keys)):
     bindKey(keys[i], i)

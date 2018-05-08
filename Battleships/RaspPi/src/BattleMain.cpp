@@ -8,7 +8,7 @@
 #include "AudioSystem.hpp"
 
 int main() {
-	std::cout << "Battleships running!" << std::endl;
+	std::cout << "Battlearcade running!" << std::endl;
 
 	startAudioSystem();
 
@@ -22,7 +22,7 @@ int main() {
     modes.emplace_back(std::move(startMode));
 
 	while(modes.size()) {
-	    modes.back()->update(modes);
+	    update(modes);
 		std::this_thread::sleep_for(std::chrono::milliseconds(16)); //TODO: Sleep for less if we taking too long
 	}
 
@@ -31,5 +31,5 @@ int main() {
 
 	stopAudioSystem();
 
-	std::cout << "Battleships ended" << std::endl;
+	std::cout << "Battlearcade ended" << std::endl;
 }

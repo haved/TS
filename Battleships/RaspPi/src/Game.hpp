@@ -6,7 +6,9 @@
 #include "Util.hpp"
 #include "ArduinoEncoder.hpp"
 
-bool clicked(int framesHeld);
+extern ButtonState<bool> buttons;
+extern ButtonState<bool> prevButtons;
+extern ButtonState<int> framesHeld;
 
 class Mode;
 struct ModeDeleter {
@@ -15,40 +17,24 @@ struct ModeDeleter {
 using ModeUniquePtr = std::unique_ptr<Mode, ModeDeleter>;
 using ModeStack = std::vector<ModeUniquePtr>;
 
+bool clicked(int framesHeld);
+void update(ModeStack& stack);
+
 class Mode {
 private:
 	bool m_initialized = false;
-	long long m_frameCount = 0;
-protected:
-	virtual void update_mode(ModeStack& modeStack)=0;
 public:
+	int frameCount=0;
 	virtual ~Mode();
-	virtual void init(){};
 	virtual void onFocus(){};
-	void update(ModeStack& modeStack);
-	long long getFrameCount();
+	virtual void update(ModeStack& modeStack)=0;
 };
 
 class MenuMode : public Mode {
 	int m_currentChoice;
 public:
-	void init() override;
 	void onFocus() override;
-	void update_mode(ModeStack& mode) override;
-};
-
-class PlaceShipsMode : public Mode {
-	int m_p1State;
-	int m_p2State;
-public:
-    void onFocus() override;
-	void update_mode(ModeStack& mode) override;
-};
-
-class GameMode : public Mode {
-public:
-	void onFocus() override;
-	void update_mode(ModeStack& mode) override;
+	void update(ModeStack& mode) override;
 };
 
 class TransitionMode : public Mode {
@@ -58,13 +44,6 @@ class TransitionMode : public Mode {
 public:
 	TransitionMode(int frames, bool viaBlack);
 	void onFocus() override;
-    void update_mode(ModeStack& mode) override;
+    void update(ModeStack& mode) override;
 };
 
-class InGameMenu : public Mode {
-	Player player;
-public:
-	InGameMenu(Player player) : player(player) {}
-	void onFocus() override;
-	void update_mode(ModeStack& mode) override;
-};
