@@ -52,9 +52,9 @@ long long Mode::getFrameCount() {
 }
 
 #define OPTION_LIST_Y_OFFSET 2
-void setPlayer1OptionColor(SerialIO& io, int optionIndex, CRGB color) {
+void setPlayer1OptionColor(int optionIndex, CRGB color) {
 	assert(optionIndex>=0 && optionIndex+2<HEIGHT);
-	setSingleTile(io, Player::ONE, Screen::DEFENSE, WIDTH-1, optionIndex+OPTION_LIST_Y_OFFSET, color);
+	setSingleTile(Player::ONE, Screen::DEFENSE, WIDTH-1, optionIndex+OPTION_LIST_Y_OFFSET, color);
 }
 
 #define MENU_BG CRGB(80, 80, 80)
@@ -72,9 +72,9 @@ void MenuMode::init() {
 }
 
 void MenuMode::onFocus() {
-	setAllScreens(serial, MENU_BG);
+	setAllScreens(MENU_BG);
 	m_currentChoice = 0;
-	setRect(serial, Player::ONE, Screen::DEFENSE, WIDTH-1, OPTION_LIST_Y_OFFSET, 1, MENU_CHOICE_COUNT, OPTION_BG);
+	setRect(Player::ONE, Screen::DEFENSE, WIDTH-1, OPTION_LIST_Y_OFFSET, 1, MENU_CHOICE_COUNT, OPTION_BG);
 }
 
 void MenuMode::update_mode(ModeStack& modes) {
@@ -90,7 +90,7 @@ void MenuMode::update_mode(ModeStack& modes) {
 	}
 	else if(m_currentChoice != prevChoice) {
 	    playSound("res/Sounds/hover_option.wav");
-	    setPlayer1OptionColor(serial, prevChoice, OPTION_BG);
+	    setPlayer1OptionColor(prevChoice, OPTION_BG);
 	}
 
 	if(clicked(framesHeld.one()[BUTTON_ACTION] || clicked(framesHeld.one()[BUTTON_START]))) {
@@ -103,8 +103,8 @@ void MenuMode::update_mode(ModeStack& modes) {
 	}
 
 	double interp = (sin(getFrameCount()/30.0*TAU)+1)/2;
-	setPlayer1OptionColor(serial, m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
-	displayScreens(serial);
+	setPlayer1OptionColor(m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
+    commitUpdate();
 }
 
 void drawArrowDown(Player player, int y, CRGB color, CRGB bgColor) {
@@ -112,9 +112,19 @@ void drawArrowDown(Player player, int y, CRGB color, CRGB bgColor) {
 		if(y+i < 0 || y+i >= HEIGHT)
 			continue;
 		auto AAColor = interpolate(bgColor, color, i/6.);
-		setSingleTile(serial, player, Screen::ATTACK, (WIDTH-1)/2-i, y+i, AAColor);
-		setSingleTile(serial, player, Screen::ATTACK, WIDTH/2+i, y+i, AAColor);
+		setSingleTile(player, Screen::ATTACK, (WIDTH-1)/2-i, y+i, AAColor);
+		setSingleTile(player, Screen::ATTACK, WIDTH/2+i, y+i, AAColor);
 	}
+}
+
+void drawButtonAnimation(Player player, Screen screen, int frame) {
+	int armDown = frame % 4;
+	if(armDown == 3) armDown = 1;
+	int buttonDown = frame % 4 == 2;
+	setRect(player, screen, 1, 3, 8, 1, CRGB(217, 167, 95));
+	setRect(player, screen, 3, 7-armDown, 1, HEIGHT-7+armDown, CRGB(232, 169, 144));
+	setRect(player, screen, 4, 9-armDown, 3, HEIGHT-9+armDown, CRGB(232, 169, 144));
+	setRect(player, screen, 2, 4, 6, 2-buttonDown, CRGB(241, 11, 11));
 }
 
 #define PLACE_SHIP_PLACING 0
@@ -124,7 +134,7 @@ void drawArrowDown(Player player, int y, CRGB color, CRGB bgColor) {
 #define ARROW_COLOR CRGB(255, 100, 0)
 void drawIndicatorScreens(int frame, int p1State, int p2State) {
 	if(frame % SCREEN_ANIMATION_DELAY == 0) {
-		setAllScreens(serial, GAME_BG); //TODO: Only attack screens
+		setAllScreens(GAME_BG); //TODO: Only attack screens
 
 		auto drawCorrectIndicator = [&](Player p, int state, int frame) {
 			if(state == PLACE_SHIP_PLACING) {
@@ -132,13 +142,7 @@ void drawIndicatorScreens(int frame, int p1State, int p2State) {
 				for(int i = 0; i < 4; i++)
 					drawArrowDown(p, i*4-shift, ARROW_COLOR, GAME_BG);
 			} else if(state == PLACE_SHIP_PLACED) {
-				int armDown = frame % 4;
-				if(armDown == 3) armDown = 1;
-				int buttonDown = frame % 4 == 2;
-				setRect(serial, p, Screen::ATTACK, 1, 3, 8, 1, CRGB(217, 167, 95));
-				setRect(serial, p, Screen::ATTACK, 3, 7-armDown, 1, HEIGHT-7+armDown, CRGB(232, 169, 144));
-				setRect(serial, p, Screen::ATTACK, 4, 9-armDown, 3, HEIGHT-9+armDown, CRGB(232, 169, 144));
-				setRect(serial, p, Screen::ATTACK, 2, 4, 6, 2-buttonDown, CRGB(241, 11, 11));
+				drawButtonAnimation(p, Screen::ATTACK, frame);
 			}
 		};
 
@@ -146,7 +150,7 @@ void drawIndicatorScreens(int frame, int p1State, int p2State) {
 		drawCorrectIndicator(Player::ONE, p1State, frame_internal);
 		drawCorrectIndicator(Player::TWO, p2State, frame_internal);
 
-		displayScreens(serial);
+		commitUpdate();
 	}
 }
 
@@ -170,12 +174,9 @@ void PlaceShipsMode::update_mode(ModeStack& modes) {
 	drawIndicatorScreens(getFrameCount(), m_p1State, m_p2State);
 }
 
-void GameMode::init() {
-}
-
 void GameMode::onFocus() {
-	setAllScreens(serial, GAME_BG);
-	displayScreens(serial);
+	setAllScreens(GAME_BG);
+    commitUpdate();
     loopMusic("res/Music/battle_music.mp3");
 }
 
@@ -196,27 +197,21 @@ TransitionMode::TransitionMode(int frames, bool viaBlack) : m_frames(frames), m_
 void TransitionMode::onFocus() { } //We do all in update_mode
 
 void TransitionMode::update_mode(ModeStack& modes) {
+	assert(modes.size() > 1);
 	auto& next = modes[modes.size()-2];
 
-	if(!m_started) {
-		assert(modes.size() > 1);
-		chooseDoubleBuffer(serial);
-		if(m_viaBlack)
-			setAllScreens(serial, BLACK);
-		else
-			next->onFocus();
-		startTransitionToDoubleBuffer(serial, m_frames);
-		m_started = true;
-	}
+	if(m_started && anyTransitionsRunning())
+		return;
 
-    if(recieveTransitionDone()) {
-		if(m_viaBlack) {
-			chooseDoubleBuffer(serial);
-			next->onFocus();
-			startTransitionToDoubleBuffer(serial, m_frames);
-			m_viaBlack = false;
-		} else
-			modes.pop_back();
+	if(m_viaBlack && !m_started) {
+		startTransitionAll(m_frames);
+		setAllScreens(BLACK);
+		commitUpdate();
+		m_started = true;
+	} else {
+		startTransitionAll(m_frames);
+		next->onFocus();
+		modes.pop_back();
 	}
 }
 
@@ -224,16 +219,16 @@ void TransitionMode::update_mode(ModeStack& modes) {
 void InGameMenu::onFocus() {
 	pauseMusic();
     auto drawBorder = [&](Player player, Screen screen) {
-		setRect(serial, player, screen, 0, 0, WIDTH-1, 1, INGAME_MENU_BORDER);
-		setRect(serial, player, screen, WIDTH-1, 0, 1, HEIGHT-1, INGAME_MENU_BORDER);
-		setRect(serial, player, screen, 1, HEIGHT-1, WIDTH-1, 1, INGAME_MENU_BORDER);
-		setRect(serial, player, screen, 0, 1, 1, HEIGHT-1, INGAME_MENU_BORDER);
+		setRect(player, screen, 0, 0, WIDTH-1, 1, INGAME_MENU_BORDER);
+		setRect(player, screen, WIDTH-1, 0, 1, HEIGHT-1, INGAME_MENU_BORDER);
+		setRect(player, screen, 1, HEIGHT-1, WIDTH-1, 1, INGAME_MENU_BORDER);
+		setRect(player, screen, 0, 1, 1, HEIGHT-1, INGAME_MENU_BORDER);
 	};
 	drawBorder(Player::ONE, Screen::DEFENSE);
     drawBorder(Player::TWO, Screen::DEFENSE);
 	drawBorder(Player::ONE, Screen::ATTACK);
 	drawBorder(Player::TWO, Screen::ATTACK);
-	displayScreens(serial);
+    commitUpdate();
 }
 
 void InGameMenu::update_mode(ModeStack& modes) {

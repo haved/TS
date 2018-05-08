@@ -30,20 +30,20 @@ screens = [makeScreen(MARGIN, MARGIN+(MARGIN+TILE_SIZE*HEIGHT)*i) for i in range
 
 colors = [[[(0,0,0) for y in range(HEIGHT)] for x in range(WIDTH)] for i in range(4)]
 transitionFrom = [None for _ in range(4)]
-transitionsTo = [None for _ in range(4)]
+transitionTo = [None for _ in range(4)]
 
 transitionProgress = [0 for _ in range(4)]
 transitionGoal = [0 for _ in range(4)]
 
 def getBufferForScreen(internScreenIndex):
     if transitionProgress[internScreenIndex] < transitionGoal[internScreenIndex]:
-        return transitionsTo[internScreenIndex]
+        return transitionTo[internScreenIndex]
     else:
         return colors[internScreenIndex]
 
 def overrideBufferForScreen(internScreenIndex, newBuffer):
     if transitionProgress[internScreenIndex] < transitionGoal[internScreenIndex]:
-        transitionsTo[internScreenIndex] = newBuffer
+        transitionTo[internScreenIndex] = newBuffer
     else:
         colors[internScreenIndex] = newBuffer
 
@@ -65,9 +65,9 @@ def getInternalScreenIndex(player, attack):
 
 def getInternalScreenCoord(screenIndex, x, y):
     if screenIndex in (0, 1): #The player two screens has x=0 to the right
-        x = WIDTH-1-x;
+        x = WIDTH-1-x
     if screenIndex % 2 == 0: #y 0 is always between attack and defend
-        y = HEIGHT-1-y;
+        y = HEIGHT-1-y
     return (x,y)
 
 from subprocess import Popen, PIPE
@@ -109,7 +109,7 @@ def handleInput():
             for X in range(x1, x1+width):
                 for Y in range(y1, y1+height):
                     x_, y_ = getInternalScreenCoord(intScreenInx, X, Y)
-                    getBufferForScreen(intScreenInt)[x_][y_] = color
+                    getBufferForScreen(intScreenInx)[x_][y_] = color
         elif cmd == b"F": #Fill all screens
             color = readColor()
             for i in range(4):
@@ -118,6 +118,7 @@ def handleInput():
             player, attack = readScreen()
             inx = getInternalScreenIndex(player, attack)
             transitionFrom[inx] = colors[inx]
+            transitionTo[inx] = colors[inx]
             transitionProgress[inx] = 0
             transitionGoal[inx] = getByt()[0]
         elif cmd == b'\n':
@@ -125,10 +126,12 @@ def handleInput():
 
 
 def listenThread():
+    global exiting
     exiting = False
     def renderLoop():
+        global exiting
         while True:
-            time.sleep(1/60)
+            sleep(1/60)
             if exiting:
                 handleInput()
                 exiting = False #handleInput goes until the '\n' signal
@@ -151,22 +154,28 @@ def listenThread():
     Thread(target=renderLoop, daemon=True).start()
     while True:
         if exiting:
-            time.sleep(1/60)
+            sleep(1/60)
             continue
         if getByt() == b'>':
             exiting = True
+            sendReadyForCommands()
 
+
+
+def sendReadyForCommands():
+    battleships.stdin.write(b">>")
+    battleships.stdin.flush()
 
 def sendAllTransitionDone():
-    battleships.stdin.write(b">T");
+    battleships.stdin.write(b">T")
     battleships.stdin.flush()
 
 def keyAction(key, release):
     if release:
-        battleships.stdin.write(b">U");
+        battleships.stdin.write(b">U")
     else:
-        battleships.stdin.write(b">D");
-    battleships.stdin.write(chr(ord('A')+key).encode('utf-8'));
+        battleships.stdin.write(b">D")
+    battleships.stdin.write(chr(ord('A')+key).encode('utf-8'))
     battleships.stdin.flush()
 
 def bindKey(name, code):

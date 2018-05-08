@@ -45,7 +45,10 @@ void setRect(Player p, Screen s, int x, int y, int width, int height, CRGB color
 
 void setAllScreens(CRGB color);
 
+void commitUpdate();
+
 void startTransition(Player p, Screen s, int frames);
+void startTransitionAll(int frames);
 bool anyTransitionsRunning();
 
 void updateButtonState(ButtonState<bool>& state);

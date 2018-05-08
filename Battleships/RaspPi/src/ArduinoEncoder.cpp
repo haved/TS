@@ -3,10 +3,14 @@
 #include <mutex>
 #include <cassert>
 #include <iostream>
+#include <condition_variable>
 
 #define ERROR(s) do { std::cerr << "ArduinoEncoder: " << __LINE__ << ": " << s << std::endl; return; } while(false)
 
 SerialIO* global_serial_ptr;
+std::mutex inputMutex;
+
+#define scoped_lock lock_guard<std::mutex>
 
 void sendColorChannels(CRGB color) {
 	serial.write(color.r);
@@ -29,11 +33,19 @@ void sendXY(int x, int y) {
 }
 
 bool started = false;
+std::condition_variable readyCV;
+
 void startUpdate() {
+	std::unique_lock<std::mutex> myLock(inputMutex);
 	if(started)
 		ERROR("Already started command");
-	started = true;
+
+	started = false;
 	serial.write('>');
+	serial.flush();
+
+	readyCV.wait(myLock, [&]{return started;});
+	//We wait here until started is true
 }
 
 void assureStarted() {
@@ -68,6 +80,7 @@ void setAllScreens(CRGB color) {
 }
 
 void commitUpdate() {
+	std::scoped_lock lock(inputMutex);
 	if(!started)
 		ERROR("Commiting command that was never started");
 	serial.write('\n');
@@ -75,29 +88,35 @@ void commitUpdate() {
 	started = false;
 }
 
-std::mutex inputMutex;
 bool transitionsRunning;
 
 void startTransition(Player p, Screen s, int frames) {
-	std::lock_guard<std::mutex> stateLock(inputMutex);
-
+	assureStarted();
 	serial.write('T');
     sendPlayerAndScreen(p, s);
 	assert(frames > 0 && frames < 256);
 	serial.write(frames);
 
+	std::scoped_lock stateLock(inputMutex);
 	transitionsRunning = true;
+}
+
+void startTransitionAll(int frames) {
+	startTransition(Player::ONE, Screen::ATTACK,  frames);
+	startTransition(Player::ONE, Screen::DEFENSE, frames);
+	startTransition(Player::TWO, Screen::ATTACK,  frames);
+	startTransition(Player::TWO, Screen::DEFENSE, frames);
+}
+
+bool anyTransitionsRunning() {
+	std::scoped_lock stateLock(inputMutex);
+	return transitionsRunning;
 }
 
 ButtonState<bool> threaded_buttonState;
 
-bool anyTransitionsRunning() {
-	std::lock_guard<std::mutex> stateLock(inputMutex);
-	return transitionsRunning;
-}
-
 void updateButtonState(ButtonState<bool>& state) {
-	std::lock_guard<std::mutex> stateLock(inputMutex);
+	std::scoped_lock stateLock(inputMutex);
 	state = threaded_buttonState;
 }
 
@@ -106,12 +125,16 @@ void threadedListeningFunc(SerialIO* io) {
 		if(io->waitForByte() == '>') {
 			char c = io->waitForByte();
 			if(c == 'T') {
-				std::lock_guard<std::mutex> stateLock(inputMutex);
+				std::scoped_lock stateLock(inputMutex);
 				transitionsRunning = false;
+			} else if(c == '>') {
+				std::scoped_lock stateLock(inputMutex);
+			    started = true;
+				readyCV.notify_one();
 			} else {
 				bool down = c == 'D';
 				char byt = io->waitForByte();
-				std::lock_guard<std::mutex> stateLock(inputMutex);
+				std::scoped_lock stateLock(inputMutex);
 				threaded_buttonState.raw[byt-'A']=down;
 			}
 		}

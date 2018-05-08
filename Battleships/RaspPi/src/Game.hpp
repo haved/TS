@@ -47,7 +47,6 @@ public:
 
 class GameMode : public Mode {
 public:
-	void init() override;
 	void onFocus() override;
 	void update_mode(ModeStack& mode) override;
 };
