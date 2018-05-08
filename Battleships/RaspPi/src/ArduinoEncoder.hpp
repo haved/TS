@@ -38,15 +38,13 @@ struct ButtonState {
 	auto two() { return &raw[PLAYER_2_BUTTONS_OFFSET]; }
 };
 
-void startUpdate();
-
 void setSingleTile(Player p, Screen s, int x, int y, CRGB color);
 
 void setRect(Player p, Screen s, int x, int y, int width, int height, CRGB color);
 
 void setAllScreens(CRGB color);
 
-void commitUpdate();
+void screenUpdate();
 
 void startTransition(Player p, Screen s, int frames);
 void startTransitionAll(int frames);

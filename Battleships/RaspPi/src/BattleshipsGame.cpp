@@ -14,7 +14,6 @@ void InGameMenu::onFocus() {
     drawBorder(Player::TWO, Screen::DEFENSE);
 	drawBorder(Player::ONE, Screen::ATTACK);
 	drawBorder(Player::TWO, Screen::ATTACK);
-    commitUpdate();
 }
 
 void InGameMenu::update(ModeStack& modes) {
@@ -73,8 +72,6 @@ void drawIndicatorScreens(int frame, int p1State, int p2State) {
 		int frame_internal = frame/SCREEN_ANIMATION_DELAY;
 		drawCorrectIndicator(Player::ONE, p1State, frame_internal);
 		drawCorrectIndicator(Player::TWO, p2State, frame_internal);
-
-		commitUpdate();
 	}
 }
 
@@ -104,7 +101,6 @@ GameMode::GameMode() {
 
 void GameMode::onFocus() {
 	setAllScreens(GAME_BG);
-    commitUpdate();
     loopMusic("res/Music/battle_music.mp3");
 }
 

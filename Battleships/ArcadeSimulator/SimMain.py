@@ -89,8 +89,10 @@ def readScreen():
     return (player, attack)
 
 def handleInput():
+    changesMade = 0
     while True:
         cmd = getByt()
+        changesMade += 1
         if cmd == b'':
             exit(0)
         elif cmd == b"S": #Set single tile
@@ -121,45 +123,26 @@ def handleInput():
             transitionTo[inx] = colors[inx]
             transitionProgress[inx] = 0
             transitionGoal[inx] = getByt()[0]
-        elif cmd == b'\n':
-            break
+        elif cmd == b'U': #repaint
+            if changesMade > 1 or sum(transitionGoal)>0:
+                for inx in range(4):
+                    goal = transitionGoal[inx]
+                    if goal != 0:
+                        transitionProgress[inx]+=1
+                        frac = transitionProgress[inx]/goal
+                        colors[inx] = [[interpolate(transitionFrom[inx][x][y], transitionTo[inx][x][y], frac) for y in range(HEIGHT)] for x in range(WIDTH)]
+                        if transitionProgress[inx] == goal:
+                            transitionGoal[inx] = 0
+                            if sum(transitionGoal) == 0:
+                                sendAllTransitionDone()
+
+                root.after(0, updateColors)
+                changesMade = 0
+            sendReadyForCommands()
 
 
 def listenThread():
-    global exiting
-    exiting = False
-    def renderLoop():
-        global exiting
-        while True:
-            sleep(1/60)
-            if exiting:
-                handleInput()
-                exiting = False #handleInput goes until the '\n' signal
-            elif sum(transitionGoal) == 0:
-                continue #Nothing exiting going on
-
-            for inx in range(4):
-                goal = transitionGoal[inx]
-                if goal != 0:
-                    transitionProgress[inx]+=1
-                    frac = transitionProgress[inx]/goal
-                    colors[inx] = [[interpolate(transitionFrom[inx][x][y], transitionTo[inx][x][y], frac) for y in range(HEIGHT)] for x in range(WIDTH)]
-                    if transitionProgress[inx] == goal:
-                        transitionGoal[inx] = 0
-                        if sum(transitionGoal) == 0:
-                            sendAllTransitionDone()
-
-            root.after(0, updateColors)
-
-    Thread(target=renderLoop, daemon=True).start()
-    while True:
-        if exiting:
-            sleep(1/60)
-            continue
-        if getByt() == b'>':
-            exiting = True
-            sendReadyForCommands()
-
+    handleInput()
 
 def sendReadyForCommands():
     battleships.stdin.write(b">>")

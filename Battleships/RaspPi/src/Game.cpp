@@ -38,13 +38,19 @@ void update(ModeStack& modeStack) {
 
 	Mode* mode = modeStack.back().get();
 
-	if(mode != lastMode) {
-		mode->onFocus();
-		lastMode = mode;
-	} else
+	do {
+		if(mode != lastMode) {
+			lastMode = mode;
+			mode->onFocus();
+		}
+
 		mode->frameCount++;
 
-	mode->update(modeStack);
+		mode->update(modeStack);
+		if(modeStack.empty())
+			return;
+		mode = modeStack.back().get();
+	} while(mode != lastMode); //If we changed mode, do the onFocus and update calls on the same frame
 }
 
 Mode::~Mode() {}
@@ -96,7 +102,6 @@ void MenuMode::update(ModeStack& modes) {
 
 	double interp = (sin(frameCount/30.0*TAU)+1)/2;
 	setPlayer1OptionColor(m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
-    commitUpdate();
 }
 
 TransitionMode::TransitionMode(int frames, bool viaBlack) : m_frames(frames), m_viaBlack(viaBlack), m_started(false) {
@@ -114,11 +119,9 @@ void TransitionMode::update(ModeStack& modes) {
 	if(m_viaBlack && !m_started) {
 		startTransitionAll(m_frames);
 		setAllScreens(BLACK);
-		commitUpdate();
 		m_started = true;
 	} else {
 		startTransitionAll(m_frames);
-		next->onFocus();
 		modes.pop_back();
 	}
 }

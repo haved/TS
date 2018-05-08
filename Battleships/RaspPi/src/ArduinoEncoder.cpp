@@ -32,29 +32,7 @@ void sendXY(int x, int y) {
 	serial.write('0'+(x+y*WIDTH));
 }
 
-bool started = false;
-std::condition_variable readyCV;
-
-void startUpdate() {
-	std::unique_lock<std::mutex> myLock(inputMutex);
-	if(started)
-		ERROR("Already started command");
-
-	started = false;
-	serial.write('>');
-	serial.flush();
-
-	readyCV.wait(myLock, [&]{return started;});
-	//We wait here until started is true
-}
-
-void assureStarted() {
-	if(!started)
-		startUpdate();
-}
-
 void setSingleTile(Player p, Screen s, int x, int y, CRGB color) {
-	assureStarted();
     serial.write('S');
 	sendPlayerAndScreen(p, s);
     sendXY(x, y);
@@ -65,7 +43,6 @@ void setRect(Player p, Screen s, int x, int y, int width, int height, CRGB color
 	if(width == 0 || height == 0)
 		return;
 	assert(width > 0 && height > 0 && x+width<=WIDTH && y+height<=HEIGHT);
-	assureStarted();
 	serial.write('R');
 	sendPlayerAndScreen(p, s);
 	sendXY(x, y);
@@ -74,24 +51,24 @@ void setRect(Player p, Screen s, int x, int y, int width, int height, CRGB color
 }
 
 void setAllScreens(CRGB color) {
-	assureStarted();
 	serial.write('F'); //F for fill (every screen)
 	sendColorChannels(color);
 }
 
-void commitUpdate() {
-	std::scoped_lock lock(inputMutex);
-	if(!started)
-		ERROR("Commiting command that was never started");
-	serial.write('\n');
+bool doneWithRepaint;
+std::condition_variable repaintCV;
+
+void screenUpdate() {
+	std::unique_lock<std::mutex> inputLock(inputMutex);
+	doneWithRepaint = false;
+	serial.write('U');
 	serial.flush();
-	started = false;
+	repaintCV.wait(inputLock, [&]{return doneWithRepaint;});
 }
 
 bool transitionsRunning;
 
 void startTransition(Player p, Screen s, int frames) {
-	assureStarted();
 	serial.write('T');
     sendPlayerAndScreen(p, s);
 	assert(frames > 0 && frames < 256);
@@ -129,8 +106,8 @@ void threadedListeningFunc(SerialIO* io) {
 				transitionsRunning = false;
 			} else if(c == '>') {
 				std::scoped_lock stateLock(inputMutex);
-			    started = true;
-				readyCV.notify_one();
+			    doneWithRepaint = true;
+				repaintCV.notify_one();
 			} else {
 				bool down = c == 'D';
 				char byt = io->waitForByte();

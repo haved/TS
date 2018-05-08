@@ -24,6 +24,7 @@ int main() {
 	while(modes.size()) {
 	    update(modes);
 		std::this_thread::sleep_for(std::chrono::milliseconds(16)); //TODO: Sleep for less if we taking too long
+		screenUpdate();
 	}
 
 	serialIO.tellToStopReading();
