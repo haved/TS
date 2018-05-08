@@ -1,35 +1,6 @@
 #include "BattleshipsGame.hpp"
 #include "AudioSystem.hpp"
 
-#define INGAME_MENU_BORDER CRGB(255, 100, 0)
-void InGameMenu::onFocus() {
-	pauseMusic();
-    auto drawBorder = [&](Player player, Screen screen) {
-		setRect(player, screen, 0, 0, WIDTH-1, 1, INGAME_MENU_BORDER);
-		setRect(player, screen, WIDTH-1, 0, 1, HEIGHT-1, INGAME_MENU_BORDER);
-		setRect(player, screen, 1, HEIGHT-1, WIDTH-1, 1, INGAME_MENU_BORDER);
-		setRect(player, screen, 0, 1, 1, HEIGHT-1, INGAME_MENU_BORDER);
-	};
-	drawBorder(Player::ONE, Screen::DEFENSE);
-    drawBorder(Player::TWO, Screen::DEFENSE);
-	drawBorder(Player::ONE, Screen::ATTACK);
-	drawBorder(Player::TWO, Screen::ATTACK);
-}
-
-void InGameMenu::update(ModeStack& modes) {
-    auto ownerHeld = &framesHeld.raw[player == Player::ONE ? 0 : PLAYER_2_BUTTONS_OFFSET];
-	if(clicked(ownerHeld[BUTTON_A])) {
-		playSound("res/Sounds/resume.wav");
-		modes.pop_back();
-	}
-	if(ownerHeld[BUTTON_MENU] > 30) {
-		playSound("res/Sounds/option_selected.wav");
-	    modes.clear();
-		modes.push_back(ModeUniquePtr(new MenuMode));
-		modes.push_back(ModeUniquePtr(new TransitionMode(30, true)));
-	}
-}
-
 void drawArrowDown(Player player, int y, CRGB color, CRGB bgColor) {
     for(int i = 0; i < 3; i++) {
 		if(y+i < 0 || y+i >= HEIGHT)
@@ -113,4 +84,47 @@ void GameMode::update(ModeStack& modes) {
 		playSound("res/Sounds/pause.wav");
 		modes.emplace_back(ModeUniquePtr(new InGameMenu(Player::TWO)));
 	}
+}
+
+#define INGAME_MENU_BORDER CRGB(255, 100, 0)
+void InGameMenu::onFocus() {
+	pauseMusic();
+    auto drawBorder = [&](Player player, Screen screen) {
+		setRect(player, screen, 0, 0, WIDTH-1, 1, INGAME_MENU_BORDER);
+		setRect(player, screen, WIDTH-1, 0, 1, HEIGHT-1, INGAME_MENU_BORDER);
+		setRect(player, screen, 1, HEIGHT-1, WIDTH-1, 1, INGAME_MENU_BORDER);
+		setRect(player, screen, 0, 1, 1, HEIGHT-1, INGAME_MENU_BORDER);
+	};
+	drawBorder(Player::ONE, Screen::DEFENSE);
+    drawBorder(Player::TWO, Screen::DEFENSE);
+	drawBorder(Player::ONE, Screen::ATTACK);
+	drawBorder(Player::TWO, Screen::ATTACK);
+
+	m_menuReleased = false;
+}
+
+void InGameMenu::update(ModeStack& modes) {
+	int bo = player == Player::ONE ? 0 : PLAYER_2_BUTTONS_OFFSET;
+    auto ownerHeld = &framesHeld.raw[bo];
+	auto ownerDown = &buttons.raw[bo];
+	//auto ownerPrev = &prevButtons.raw[bo];
+
+	if(!m_menuReleased) {
+		if(!ownerDown[BUTTON_MENU])
+			m_menuReleased = true;
+		else return;
+	}
+
+	if(clicked(ownerHeld[BUTTON_A]) || clicked(ownerHeld[BUTTON_MENU])) {
+		playSound("res/Sounds/resume.wav");
+		modes.pop_back();
+	}
+
+	/*
+	if(ownerHeld[BUTTON_MENU] > 30) { //too risky
+		playSound("res/Sounds/option_selected.wav");
+	    modes.clear();
+		modes.push_back(ModeUniquePtr(new MenuMode));
+		modes.push_back(ModeUniquePtr(new TransitionMode(30, true)));
+		}*/
 }

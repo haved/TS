@@ -4,14 +4,6 @@
 
 #define GAME_BG CRGB(50, 60, 200)
 
-class InGameMenu : public Mode {
-	Player player;
-public:
-	InGameMenu(Player player) : player(player) {}
-	void onFocus() override;
-	void update(ModeStack& mode) override;
-};
-
 class PlaceShipsMode : public Mode {
 	int m_p1State;
 	int m_p2State;
@@ -23,6 +15,15 @@ public:
 class GameMode : public Mode {
 public:
 	GameMode();
+	void onFocus() override;
+	void update(ModeStack& mode) override;
+};
+
+class InGameMenu : public Mode {
+	Player player;
+	bool m_menuReleased;
+public:
+	InGameMenu(Player player) : player(player) {}
 	void onFocus() override;
 	void update(ModeStack& mode) override;
 };

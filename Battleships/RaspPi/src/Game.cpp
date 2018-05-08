@@ -55,10 +55,10 @@ void update(ModeStack& modeStack) {
 
 Mode::~Mode() {}
 
-#define OPTION_LIST_Y_OFFSET 2
+#define OPTION_LIST_Y_OFFSET 1
 void setPlayer1OptionColor(int optionIndex, CRGB color) {
 	assert(optionIndex>=0 && optionIndex+2<HEIGHT);
-	setSingleTile(Player::ONE, Screen::DEFENSE, WIDTH-1, optionIndex+OPTION_LIST_Y_OFFSET, color);
+	setSingleTile(Player::ONE, Screen::DEFENSE, 0, optionIndex+OPTION_LIST_Y_OFFSET, color);
 }
 
 #define MENU_BG CRGB(80, 80, 80)
@@ -72,7 +72,7 @@ void setPlayer1OptionColor(int optionIndex, CRGB color) {
 void MenuMode::onFocus() {
 	setAllScreens(MENU_BG);
 	m_currentChoice = 0;
-	setRect(Player::ONE, Screen::DEFENSE, WIDTH-1, OPTION_LIST_Y_OFFSET, 1, MENU_CHOICE_COUNT, OPTION_BG);
+	setRect(Player::ONE, Screen::DEFENSE, 0, OPTION_LIST_Y_OFFSET, 1, MENU_CHOICE_COUNT, OPTION_BG);
 }
 
 void MenuMode::update(ModeStack& modes) {
@@ -111,7 +111,6 @@ void TransitionMode::onFocus() { } //We do all in update_mode
 
 void TransitionMode::update(ModeStack& modes) {
 	assert(modes.size() > 1);
-	auto& next = modes[modes.size()-2];
 
 	if(m_started && anyTransitionsRunning())
 		return;
