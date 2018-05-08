@@ -12,13 +12,16 @@
 #define ATK 0
 #define DEF 1
 
-CRGB leds[SCREEN_COUNT][LED_COUNT];
-
 #define BUTTON_PIN_MIN 30
-#define BUTTON_COUNT 12
-#define P2_BTN_OFFSET 6
+#define P2_BTN_OFFSET 7
+#define BUTTON_COUNT P2_BTN_OFFSET*2
 
-//Buttons go like this: //TODO: Check C++
+CRGB leds[SCREEN_COUNT][LED_COUNT];
+CRGB colorFrom[SCREEN_COUNT][LED_COUNT];
+CRGB colorTo[SCREEN_COUNT][LED_COUNT];
+int transProg[SCREEN_COUNT] = {};
+int transGoal[SCREEN_COUNT] = {};
+int transGoalSum = 0;
 
 #define IO Serial
 
@@ -59,42 +62,37 @@ CRGB readColor() {
   return CRGB(r, g, b);
 }
 
-void loop() {
-  /*if(IO.find(">")) {
-    int c = waitForChar();
-    if(c == 'P') {
-      int playerId = waitForChar() == '1' ? PLAYER1 : PLAYER2;
-      int atkDef = waitForChar() == 'A' ? ATK : DEF;
-      int screen = SCREEN[playerId][atkDef];
-      c = waitForChar();
-      if(c == 'S') { //Single tile
-        int x = waitForChar()-'0';
-        int y = waitForChar()-'0';
-        int coord = getCoordForScreen(x, y, screen);
-        leds[screen][coord] = readColor();
-      }
-      FastLED.show();
-    }
-    if(c == 'F')
-      setAllLedArrays(readColor());
-  }
+void handleButtonInput();
 
-  static bool prevButtons[BUTTON_COUNT] = {};
-  for(int i = 0; i < BUTTON_COUNT; i++) {
-    bool state = digitalRead(BUTTON_PIN_MIN+i);
-    if(state != prevButtons[i]) {
-      IO.print("BS+BTN "); //TODO: New protocol
-      IO.print(state ? "DWN": "REL");
-      IO.print(' ');
-      if(i >= P2_BTN_OFFSET) {
-        IO.print("P2");
-        IO.println(BTN_CODE[i-P2_BTN_OFFSET]);
-      }
-      else {
-        IO.print("P1");
-        IO.println(BTN_CODE[i]);
-      }
-      prevButtons[i] = state;
-    }
-  }*/
+void loop() {
+  int byt = waitForChar();
+  if(byt == 'S') { //Set single tile
+    
+  }
+  else if(byt == 'R') { //Rectangle fill
+    
+  }
+  else if(byt == 'T') {
+    IO.print(">T");
+    IO.flush();
+  }
+  else if(byt == 'U') { // Repaint
+    FastLED.show();
+    handleButtonInput();
+    IO.print(">>"); //Have to tell them we are done
+    IO.flush(); //                          - ASAP
+  }
 }
+
+void handleButtonInput() {
+  static bool buttonStates[BUTTON_COUNT];
+  for(int i = 0; i < BUTTON_COUNT; i++) {
+    bool but = digitalRead(BUTTON_PIN_MIN+i);
+    if(but != buttonStates[i]) {
+      IO.print(but ? ">D" : ">U");
+      IO.write('A' + i); //How we do key codes
+      buttonStates[i] = but;
+    }
+  }
+}
+
