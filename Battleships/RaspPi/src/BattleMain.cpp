@@ -21,10 +21,20 @@ int main() {
 	ModeUniquePtr startMode(new MenuMode());
     modes.emplace_back(std::move(startMode));
 
+	auto last = std::chrono::steady_clock::now();
+	auto second = std::chrono::seconds(1);
+	int framesSinceLast = 0;
 	while(modes.size()) {
-	    update(modes);
-		std::this_thread::sleep_for(std::chrono::milliseconds(16)); //TODO: Sleep for less if we taking too long
+	    //update(modes);
+		//std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		screenUpdate();
+		std::cerr << "We waiting" << std::endl;
+		framesSinceLast++;
+		if(std::chrono::steady_clock::now() - last > second) {
+			std::cerr << "FPS: " << framesSinceLast << std::endl;
+			framesSinceLast = 0;
+			last -= second;
+		}
 	}
 
 	serialIO.tellToStopReading();

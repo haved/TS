@@ -52,6 +52,7 @@ SerialIO::~SerialIO() {
 
 char SerialIO::waitForByte() {
 	char c = INPUT.get();
+	std::cerr << "In:" << c << std::endl;
 	if(!INPUT)
 		throw std::runtime_error("Serial in was closed");
 	return c;
@@ -66,17 +67,20 @@ void SerialIO::tellToStopReading() {
 }
 
 void SerialIO::print(const char* c) {
+	std::cerr << "Out:" << c << std::endl;
 	if(!OUTPUT.good())
 		throw std::runtime_error("Serial out is borked");
     OUTPUT << c;
 }
 
 void SerialIO::write(char byt) {
+	std::cerr << "Out:" << byt << std::endl;
 	if(!OUTPUT.good())
 		throw std::runtime_error("Serial out is borked");
     OUTPUT << byt;
 }
 
 void SerialIO::flush() {
+	std::cerr << "Flushed" << std::endl;
 	OUTPUT.flush();
 }
