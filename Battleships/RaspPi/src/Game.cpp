@@ -38,19 +38,15 @@ void update(ModeStack& modeStack) {
 
 	Mode* mode = modeStack.back().get();
 
-	do {
-		if(mode != lastMode) {
-			lastMode = mode;
-			mode->onFocus();
-		}
+	if(mode != lastMode) {
+		lastMode = mode;
+		mode->onFocus();
+	}
+	mode->frameCount++;
+	mode->update(modeStack);
 
-		mode->frameCount++;
-
-		mode->update(modeStack);
-		if(modeStack.empty())
-			return;
-		mode = modeStack.back().get();
-	} while(mode != lastMode); //If we changed mode, do the onFocus and update calls on the same frame
+	/*if(modeStack.size() && modeStack.back().get() != mode)
+	  update(modeStack); //Recursion, increasing the button held count, among other things*/
 }
 
 Mode::~Mode() {}

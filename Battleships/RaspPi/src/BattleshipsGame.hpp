@@ -21,7 +21,6 @@ public:
 
 class InGameMenu : public Mode {
 	Player player;
-	bool m_menuReleased;
 public:
 	InGameMenu(Player player) : player(player) {}
 	void onFocus() override;

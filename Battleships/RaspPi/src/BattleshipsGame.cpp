@@ -99,21 +99,13 @@ void InGameMenu::onFocus() {
     drawBorder(Player::TWO, Screen::DEFENSE);
 	drawBorder(Player::ONE, Screen::ATTACK);
 	drawBorder(Player::TWO, Screen::ATTACK);
-
-	m_menuReleased = false;
 }
 
 void InGameMenu::update(ModeStack& modes) {
 	int bo = player == Player::ONE ? 0 : PLAYER_2_BUTTONS_OFFSET;
     auto ownerHeld = &framesHeld.raw[bo];
-	auto ownerDown = &buttons.raw[bo];
+	//auto ownerDown = &buttons.raw[bo];
 	//auto ownerPrev = &prevButtons.raw[bo];
-
-	if(!m_menuReleased) {
-		if(!ownerDown[BUTTON_MENU])
-			m_menuReleased = true;
-		else return;
-	}
 
 	if(clicked(ownerHeld[BUTTON_A]) || clicked(ownerHeld[BUTTON_MENU])) {
 		playSound("res/Sounds/resume.wav");
@@ -126,5 +118,5 @@ void InGameMenu::update(ModeStack& modes) {
 	    modes.clear();
 		modes.push_back(ModeUniquePtr(new MenuMode));
 		modes.push_back(ModeUniquePtr(new TransitionMode(30, true)));
-		}*/
+	}*/
 }
