@@ -4,7 +4,7 @@
 #define HEIGHT 10
 #define LED_COUNT WIDTH*HEIGHT
 
-#define DATA_PIN_MIN 0 /*24*/
+#define DATA_PIN_MIN 2 /*24*/
 #define SCREEN_COUNT 4
 
 //24: P1_ATK
@@ -108,6 +108,7 @@ void loop() {
   static int changesDone = 0;
   changesDone++;
   int byt = waitForChar();
+  
   if(byt == 'S') { //Set single tile
     int screen = readInternalScreen();
     int x, y;

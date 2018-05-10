@@ -3,8 +3,6 @@
 #include "SerialIO.hpp"
 #include "Util.hpp"
 
-#include <thread>
-
 #define WIDTH 10
 #define HEIGHT 10
 
@@ -51,4 +49,3 @@ void startTransitionAll(int frames);
 bool anyTransitionsRunning();
 
 void updateButtonState(ButtonState<bool>& state);
-std::thread startListeningThread(SerialIO* io);

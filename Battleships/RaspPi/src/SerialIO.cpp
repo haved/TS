@@ -1,10 +1,15 @@
 #include "SerialIO.hpp"
-#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <iostream>
-#include <fstream>
-#include <stdexcept>
+#include <string>
 #include <cstring>
-#include <cassert>
+
+#define ERROR(s) do{std::cerr << __FILE__ << ":" << __LINE__ << ": error: " << s << std::endl; throw std::runtime_error("Previous error was fatal"); } while(false)
 
 #define CMD_BUFFER_SIZE 256
 
@@ -30,57 +35,78 @@ std::string getWantedTTY() {
 }
 
 #ifdef USE_STDIO
-#define INPUT std::cin
-#define OUTPUT std::cout
-#else
-#define INPUT m_serial
-#define OUTPUT m_serial
-#endif
+SerialIO::SerialIO() {
+	const char* target = "/dev/stdin";
+	nonBlockingIn = open(target, O_RDONLY | O_NDELAY);
+	if(nonBlockingIn == -1)
+		ERROR( "Failed to open " << target << ": " << strerror(errno) );
 
+	fcntl(nonBlockingIn, F_SETFL, FNDELAY);
 
-SerialIO::SerialIO() : m_serial(), m_keepReading(true) {
-#ifndef USE_STDIO
-	std::string wantedTTY = "/dev/"+getWantedTTY();
-	m_serial.open(wantedTTY, std::ios::out | std::ios::in | std::ios::binary | std::ios::app);
-	if(!m_serial.is_open()) throw std::runtime_error("Failed to open: " + wantedTTY);
-#endif
+	target = "/dev/stdout";
+	out = open(target, O_WRONLY);
+	if(out == -1)
+		ERROR( "Failed to open " << target << ": " << strerror(errno) );
 }
+#else
+SerialIO::SerialIO() {
+	std::string target = getWantedTTY();
+	nonBlockingIn = open(target.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+	if(nonBlockingIn == -1)
+		ERROR( "Failed to open " << target << ": " << strerror(errno) );
+
+	fcntl(nonBlockingIn, F_SETFL, FNDELAY);
+	out = nonBlockingIn;
+
+	const int TRASH_SIZE = 128;
+	char trash[TRASH_SIZE];
+	read(trash, TRASH_SIZE);
+}
+#endif
 
 SerialIO::~SerialIO() {
-	m_serial.close();
+	fcntl(nonBlockingIn, F_SETFL, 0);
+	close(nonBlockingIn);
+	if(nonBlockingIn != out)
+		close(out);
 }
 
-char SerialIO::waitForByte() {
-	char c = INPUT.get();
-	std::cerr << "In:" << c << std::endl;
-	if(!INPUT)
-		throw std::runtime_error("Serial in was closed");
-	return c;
+int SerialIO::getByteIfReady() {
+	char in;
+	int result = read(&in, 1);
+	if(result == 0)
+		return -1;
+	return in;
 }
 
-bool SerialIO::isOpenForReading() {
-	return ((bool) INPUT) && m_keepReading.load();
-}
-
-void SerialIO::tellToStopReading() {
-	m_keepReading.store(false);
+int SerialIO::read(char* buf, int maxLen) {
+	int result = ::read(nonBlockingIn, buf, maxLen);
+	if(result == 0)
+		ERROR( "EOF in Serial in" );
+	else if(result == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
+	    ERROR( "Serial in read failed: " << strerror(errno) );
+	/*if(result > 0)
+	  std::cerr << "Got something" << std::endl;*/
+	return std::max(result, 0);
 }
 
 void SerialIO::print(const char* c) {
-	std::cerr << "Out:" << c << std::endl;
-	if(!OUTPUT.good())
-		throw std::runtime_error("Serial out is borked");
-    OUTPUT << c;
+	int len = strlen(c);
+    int written = ::write(out, c, len);
+	if(written == -1)
+		ERROR( "Failed to write: " << strerror(errno) );
+	if(written != len)
+		ERROR( "Is output full? Wrote " << written << "/" << len );
 }
 
 void SerialIO::write(char byt) {
-	std::cerr << "Out:" << byt << std::endl;
-	if(!OUTPUT.good())
-		throw std::runtime_error("Serial out is borked");
-    OUTPUT << byt;
+    int written = ::write(out, &byt, 1);
+	if(written == -1)
+		ERROR( "Failed to write: " << strerror(errno) );
+	if(written != 1)
+		ERROR( "Is output full? Wrote " << written << "/1 bytes" );
 }
 
 void SerialIO::flush() {
-	std::cerr << "Flushed" << std::endl;
-	OUTPUT.flush();
+    //We don't need to flush a file descriptor, seing as it isn't buffered like a FILE*
 }

@@ -15,8 +15,6 @@ int main() {
 	SerialIO serialIO;
 	global_serial_ptr = &serialIO;
 
-	std::thread readingThread = startListeningThread(&serialIO);
-
 	ModeStack modes;
 	ModeUniquePtr startMode(new MenuMode());
     modes.emplace_back(std::move(startMode));
@@ -25,20 +23,17 @@ int main() {
 	auto second = std::chrono::seconds(1);
 	int framesSinceLast = 0;
 	while(modes.size()) {
-	    //update(modes);
-		//std::this_thread::sleep_for(std::chrono::milliseconds(16));
+	    update(modes);
 		screenUpdate();
-		std::cerr << "We waiting" << std::endl;
+		//std::cerr << "We waiting" << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		framesSinceLast++;
 		if(std::chrono::steady_clock::now() - last > second) {
 			std::cerr << "FPS: " << framesSinceLast << std::endl;
 			framesSinceLast = 0;
-			last -= second;
+			last += second;
 		}
 	}
-
-	serialIO.tellToStopReading();
-	readingThread.join();
 
 	stopAudioSystem();
 

@@ -1,16 +1,11 @@
 #include "ArduinoEncoder.hpp"
-#include <atomic>
-#include <mutex>
 #include <cassert>
 #include <iostream>
-#include <condition_variable>
+#include <cstring>
 
 #define ERROR(s) do { std::cerr << "ArduinoEncoder: " << __LINE__ << ": " << s << std::endl; return; } while(false)
 
 SerialIO* global_serial_ptr;
-std::mutex inputMutex;
-
-#define scoped_lock lock_guard<std::mutex>
 
 void sendColorChannels(CRGB color) {
 	serial.write(color.r);
@@ -56,14 +51,11 @@ void setAllScreens(CRGB color) {
 }
 
 bool doneWithRepaint;
-std::condition_variable repaintCV;
 
 void screenUpdate() {
-	std::unique_lock<std::mutex> inputLock(inputMutex);
-	doneWithRepaint = false;
+    doneWithRepaint = false;
 	serial.write('U');
 	serial.flush();
-	repaintCV.wait(inputLock, [&]{return doneWithRepaint;});
 }
 
 bool transitionsRunning;
@@ -74,7 +66,6 @@ void startTransition(Player p, Screen s, int frames) {
 	assert(frames > 0 && frames < 256);
 	serial.write(frames);
 
-	std::scoped_lock stateLock(inputMutex);
 	transitionsRunning = true;
 }
 
@@ -86,38 +77,49 @@ void startTransitionAll(int frames) {
 }
 
 bool anyTransitionsRunning() {
-	std::scoped_lock stateLock(inputMutex);
 	return transitionsRunning;
 }
 
-ButtonState<bool> threaded_buttonState;
-
 void updateButtonState(ButtonState<bool>& state) {
-	std::scoped_lock stateLock(inputMutex);
-	state = threaded_buttonState;
-}
+	const int BUF_SIZE = 10;
+	static int pos = 0;
+	static char buffer[BUF_SIZE];
 
-void threadedListeningFunc(SerialIO* io) {
-	while(io->isOpenForReading()) {
-		if(io->waitForByte() == '>') {
-			char c = io->waitForByte();
-			if(c == 'T') {
-				std::scoped_lock stateLock(inputMutex);
-				transitionsRunning = false;
-			} else if(c == '>') {
-				std::scoped_lock stateLock(inputMutex);
-			    doneWithRepaint = true;
-				repaintCV.notify_one();
-			} else {
-				bool down = c == 'D';
-				char byt = io->waitForByte();
-				std::scoped_lock stateLock(inputMutex);
-				threaded_buttonState.raw[byt-'A']=down;
-			}
+	do {
+		int read = serial.read(buffer+pos, BUF_SIZE-pos);
+		pos += read;
+
+		auto moveBack = [&](int steps) {
+			memcpy(buffer, buffer+steps, pos-steps);
+			pos-=steps;
+			memset(buffer+pos, 0, steps);
+		};
+
+		while(pos > 0 && buffer[0] != '>') {
+			std::cerr << "Recieved '" << buffer[0] << "' when waiting for '>'" << std::endl;
+			moveBack(1);
 		}
-	}
-}
 
-std::thread startListeningThread(SerialIO* io) {
-    return std::thread(threadedListeningFunc, io);
+		auto emp = [&](int p) { return p >= pos; };
+
+		if(emp(1))
+			return;
+		char c = buffer[1];
+		if(c == 'T') {
+			transitionsRunning = false;
+			moveBack(2); //   >T
+		} else if(c == '>') {
+			doneWithRepaint = true;
+			moveBack(2); //   >>
+		} else if(c == 'D' || c == 'U') {
+			bool down = c == 'D';
+			if(emp(2))
+				return;
+			state.raw[buffer[2]-'A']=down;
+			moveBack(3); //   >DA
+		} else {
+			std::cerr << "Unrecognized command: " << c << std::endl;
+			moveBack(2); //   >?
+		}
+	} while(pos);
 }
