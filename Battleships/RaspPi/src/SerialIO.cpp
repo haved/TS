@@ -65,10 +65,24 @@ SerialIO::SerialIO() {
 
 	struct termios options;
 	tcgetattr(in, &options);
+
+	options.c_cflag |= (CLOCAL | CREAD);
+	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN );
+	options.c_oflag &= ~(OPOST | ONLCR | OCRNL);
+	options.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
+
 	cfsetispeed(&options, B115200);
 	cfsetospeed(&options, B115200);
 
-	options.c_cflag |= (CLOCAL | CREAD);
+	options.c_cflag &= ~(CSIZE | CSTOPB);
+	options.c_cflag |= CS8; //bytesize 8
+
+	options.c_iflag &= ~(INPCK | ISTRIP);
+	options.c_cflag &= ~(PARENB | PARODD | CMSPAR);
+
+	options.c_iflag &= ~(IXON | IXOFF);
+
+	options.c_cc[VTIME] = 0; //Minimum chars needed to be read
 
 	tcsetattr(in, TCSANOW, &options);
 
