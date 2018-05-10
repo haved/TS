@@ -32,4 +32,7 @@
 - cd TS/Battleships/RaspPi
 - ./compileAndRun.sh
 
+#### Install Arduino IDE?
+Serial is awful, ok?
+
 #### Autostart without a desktop environment

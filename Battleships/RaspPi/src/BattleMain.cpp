@@ -21,26 +21,27 @@ void countFPS() {
 	}
 }
 
-void serialIOSyncerThroughSpam() {
-	std::atomic<bool> keepSpamming(true);
-	auto spammerFunc = [&]() {
-		while(keepSpamming.load()) {
-			serial.write('U');
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-	};
-	std::thread spammer(spammerFunc);
-	while(serial.waitForByte() != '>');
-	keepSpamming.store(false);
-	spammer.join();
+std::atomic<bool> keepSpamming;
+void spammerFunc() {
+	while(keepSpamming.load()) {
+		serial.write('U');
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+};
 
-	screenUpdate();
+void serialIOSyncerThroughSpam() {
+	keepSpamming.store(true);
+	std::thread spammer(spammerFunc);
+	while(serial.waitForByte() != '>' || serial.waitForByte() != '>');
+	keepSpamming.store(false);
+	spammer.detach();
 }
 
 void gameLoop() {
-	auto inputThread = startInputListeningThread();
-
 	serialIOSyncerThroughSpam();
+
+	auto inputThread = startInputListeningThread();
+	screenUpdate();
 
 	ModeStack modes;
 	ModeUniquePtr startMode(new MenuMode());
