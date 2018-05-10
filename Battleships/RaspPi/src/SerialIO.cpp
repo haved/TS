@@ -87,8 +87,10 @@ char SerialIO::waitForByte() {
 		ERROR( "EOF in Serial in" );
 	else if(result == -1)
 	    ERROR( "Serial in read failed: " << strerror(errno) );
-	//std::lock_guard<std::mutex> lock(loggingMutex);
-	//std::cerr << "Input: " << c << std::endl;
+#ifdef DEBUG_IO
+	std::lock_guard<std::mutex> lock(loggingMutex);
+	std::cerr << "Input: " << c << std::endl;
+#endif
 	return c;
 }
 
@@ -99,8 +101,10 @@ void SerialIO::print(const char* c) {
 		ERROR( "Failed to write: " << strerror(errno) );
 	if(written != len)
 		ERROR( "Is output full? Wrote " << written << "/" << len );
-	//std::lock_guard<std::mutex> lock(loggingMutex);
-	//std::cerr << "Wrote: " << c << std::endl;
+#ifdef DEBUG_IO
+	std::lock_guard<std::mutex> lock(loggingMutex);
+	std::cerr << "Wrote: " << c << std::endl;
+#endif
 }
 
 void SerialIO::write(char byt) {
@@ -110,8 +114,10 @@ void SerialIO::write(char byt) {
 	if(written != 1)
 		ERROR( "Is output full? Wrote " << written << "/1 bytes" );
 
-	//std::lock_guard<std::mutex> lock(loggingMutex);
-	//std::cerr << "Wrote (byte): " << byt << std::endl;
+#ifdef DEBUG_IO
+	std::lock_guard<std::mutex> lock(loggingMutex);
+	std::cerr << "Wrote (byte): " << byt << std::endl;
+#endif
 }
 
 void SerialIO::flush() {
