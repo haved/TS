@@ -8,13 +8,21 @@
 #include <atomic>
 #include <mutex>
 
-#define scoped_lock unique_lock<std::mutex>
-
-#define ERROR(s) do { std::cerr << "ArduinoEncoder: " << __LINE__ << ": " << s << std::endl; return; } while(false)
+#define ERROR(s) do{													             \
+		std::lock_guard<std::mutex> lock(loggingMutex);					             \
+		std::cerr << "ArduinoEncoder:" << __LINE__ << ": error: " << s << std::endl; \
+		throw std::runtime_error("Previous error was fatal");			             \
+	} while(false)
 
 SerialIO* global_serial_ptr;
 std::atomic<bool> atomic_keepThreadRunning;
 std::mutex inputMutex;
+
+std::unique_lock<std::mutex> lockInput() {
+	if(atomic_keepThreadRunning.load() == false)
+		throw std::runtime_error("Locking input mutex while input thread is stopped");
+	return std::unique_lock<std::mutex>(inputMutex);
+}
 
 void sendColorChannels(CRGB color) {
 	serial.write(color.r);
@@ -63,7 +71,7 @@ bool threaded_doneWithRepaint;
 std::condition_variable repaintCV;
 
 void screenUpdate() {
-	std::scoped_lock lock(inputMutex);
+    auto lock = lockInput();
     threaded_doneWithRepaint = false;
 	serial.write('U');
 	serial.flush();
@@ -73,7 +81,7 @@ void screenUpdate() {
 bool threaded_transitionsRunning;
 
 void startTransition(Player p, Screen s, int frames) {
-	std::scoped_lock lock(inputMutex);
+    auto lock = lockInput();
 	serial.write('T');
     sendPlayerAndScreen(p, s);
 	assert(frames > 0 && frames < 256);
@@ -90,41 +98,60 @@ void startTransitionAll(int frames) {
 }
 
 bool anyTransitionsRunning() {
-	std::scoped_lock lock(inputMutex);
+    auto lock = lockInput();
 	return threaded_transitionsRunning;
 }
 
 ButtonState<bool> threaded_buttonState;
 
 void updateButtonState(ButtonState<bool>& state) {
-    std::scoped_lock lock(inputMutex);
+    auto lock = lockInput();
     state = threaded_buttonState;
 }
 
+void waitForCommand() {
+	char c = serial.waitForByte();
+	if(c != '>') {
+		std::lock_guard<std::mutex> lock(loggingMutex);
+		std::cerr << "Got trash from serial: " << c << std::endl;
+	    return;
+	}
+
+	c = serial.waitForByte();
+
+	if(c == 'T') {
+		std::unique_lock<std::mutex> lock(inputMutex);
+		threaded_transitionsRunning = false;
+	} else if(c == '>') {
+		std::unique_lock<std::mutex> lock(inputMutex);
+		threaded_doneWithRepaint = true;
+		repaintCV.notify_one();
+	} else if(c == 'D' || c == 'U') {
+		bool down = c == 'D';
+		int button = serial.waitForByte()-'A';
+		std::unique_lock<std::mutex> lock(inputMutex);
+		threaded_buttonState.raw[button]=down;
+	} else {
+		std::lock_guard<std::mutex> lock(loggingMutex);
+		std::cerr << "Unrecognized command: >" << c << std::endl;
+	}
+}
+
 void inputListeningThread() {
-	while(atomic_keepThreadRunning.load()) {
-		char c = serial.waitForByte();
-		if(c != '>') {
-			std::cerr << "Got trash from serial: " << c << std::endl;
-			continue;
+	try {
+		while(atomic_keepThreadRunning.load())
+			waitForCommand();
+	} catch(std::runtime_error e) {
+		{
+			std::lock_guard<std::mutex> lockLog(loggingMutex);
+			std::cerr << "Excpetion thrown in listening thread: " << e.what() << std::endl;
 		}
-
-		c = serial.waitForByte();
-
-		if(c == 'T') {
-			std::scoped_lock lock(inputMutex);
-			threaded_transitionsRunning = false;
-		} else if(c == '>') {
-			std::scoped_lock lock(inputMutex);
+		atomic_keepThreadRunning.store(false);
+		std::unique_lock<std::mutex> lockInput(inputMutex);
+	    if(threaded_doneWithRepaint == false) {
 			threaded_doneWithRepaint = true;
 			repaintCV.notify_one();
-		} else if(c == 'D' || c == 'U') {
-			bool down = c == 'D';
-			int button = serial.waitForByte()-'A';
-			std::scoped_lock lock(inputMutex);
-			threaded_buttonState.raw[button]=down;
-		} else
-			std::cerr << "Unrecognized command: >" << c << std::endl;
+		}
 	}
 }
 

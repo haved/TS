@@ -42,11 +42,9 @@ void update(ModeStack& modeStack) {
 		lastMode = mode;
 		mode->onFocus();
 	}
-	mode->frameCount++;
+	else
+		mode->frameCount++;
 	mode->update(modeStack);
-
-	/*if(modeStack.size() && modeStack.back().get() != mode)
-	  update(modeStack); //Recursion, increasing the button held count, among other things*/
 }
 
 Mode::~Mode() {}

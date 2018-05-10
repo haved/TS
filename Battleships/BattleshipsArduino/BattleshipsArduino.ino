@@ -34,7 +34,7 @@ CRGB* writeToBuffer[SCREEN_COUNT] = {leds[0], leds[1], leds[2], leds[3]};
 #define IO Serial
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   FastLED.addLeds<WS2812B, DATA_PIN_MIN+0, GRB>(leds[0], LED_COUNT);
   FastLED.addLeds<WS2812B, DATA_PIN_MIN+1, GRB>(leds[1], LED_COUNT);

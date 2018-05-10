@@ -22,7 +22,6 @@ void update(ModeStack& stack);
 
 class Mode {
 private:
-	bool m_initialized = false;
 public:
 	int frameCount=0;
 	virtual ~Mode();

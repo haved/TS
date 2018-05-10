@@ -10,3 +10,5 @@ CRGB interpolate(CRGB a, CRGB b, double x) {
 	double y = 1-x;
 	return CRGB(a.r*x+b.r*y, a.g*x+b.g*y, a.b*x+b.b*y);
 }
+
+std::mutex loggingMutex;

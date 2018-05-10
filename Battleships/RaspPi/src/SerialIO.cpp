@@ -5,11 +5,19 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <termios.h>
+
 #include <iostream>
 #include <string>
 #include <cstring>
 
-#define ERROR(s) do{std::cerr << __FILE__ << ":" << __LINE__ << ": error: " << s << std::endl; throw std::runtime_error("Previous error was fatal"); } while(false)
+#include "Util.hpp"
+
+#define ERROR(s) do{ \
+		std::lock_guard<std::mutex> lock(loggingMutex);						   \
+		std::cerr << "SerialIO:" << __LINE__ << ": error: " << s << std::endl; \
+		throw std::runtime_error("Previous error was fatal");			       \
+	} while(false)
 
 #define CMD_BUFFER_SIZE 256
 
@@ -48,19 +56,21 @@ SerialIO::SerialIO() {
 }
 #else
 SerialIO::SerialIO() {
-	std::string target = getWantedTTY();
-	in = open(target.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+	std::string target = "/dev/" + getWantedTTY();
+	in = open(target.c_str(), O_RDWR | O_NOCTTY); // | O_NDELAY
 	if(in == -1)
 		ERROR( "Failed to open " << target << ": " << strerror(errno) );
 
 	out = in;
 
-	const int TRASH_SIZE = 128;
-	char trash[TRASH_SIZE];
-	fcntl(in, F_SETFL, FNDELAY); //No blocking
-    if(read(in, trash, TRASH_SIZE) == -1 && errno != EAGAIN)
-		ERROR( "Failed eating trash from start of serial: " << strerror(errno) );
-	fcntl(in, F_SETFL, 0); //We do blocking
+	struct termios options;
+	tcgetattr(in, &options);
+	cfsetispeed(&options, B115200);
+	cfsetospeed(&options, B115200);
+
+	options.c_cflag |= (CLOCAL | CREAD);
+
+	tcsetattr(in, TCSANOW, &options);
 }
 #endif
 
@@ -77,6 +87,8 @@ char SerialIO::waitForByte() {
 		ERROR( "EOF in Serial in" );
 	else if(result == -1)
 	    ERROR( "Serial in read failed: " << strerror(errno) );
+	//std::lock_guard<std::mutex> lock(loggingMutex);
+	//std::cerr << "Input: " << c << std::endl;
 	return c;
 }
 
@@ -87,6 +99,8 @@ void SerialIO::print(const char* c) {
 		ERROR( "Failed to write: " << strerror(errno) );
 	if(written != len)
 		ERROR( "Is output full? Wrote " << written << "/" << len );
+	//std::lock_guard<std::mutex> lock(loggingMutex);
+	//std::cerr << "Wrote: " << c << std::endl;
 }
 
 void SerialIO::write(char byt) {
@@ -95,6 +109,9 @@ void SerialIO::write(char byt) {
 		ERROR( "Failed to write: " << strerror(errno) );
 	if(written != 1)
 		ERROR( "Is output full? Wrote " << written << "/1 bytes" );
+
+	//std::lock_guard<std::mutex> lock(loggingMutex);
+	//std::cerr << "Wrote (byte): " << byt << std::endl;
 }
 
 void SerialIO::flush() {

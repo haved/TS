@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <mutex>
 
 using channel = uint8_t;
 class CRGB {
@@ -15,3 +16,5 @@ extern CRGB BLUE;
 extern CRGB BLACK;
 
 CRGB interpolate(CRGB a, CRGB b, double x);
+
+extern std::mutex loggingMutex;
