@@ -43,6 +43,8 @@ void setup() {
 
   for(int i = 0; i < BUTTON_COUNT; i++)
     pinMode(BUTTON_PIN_MIN+i, INPUT);
+
+  Serial.print("QQ");
 }
 
 void fill(CRGB* leds, int count, CRGB value) {
@@ -123,7 +125,7 @@ void loop() {
     readXY(&width, &height);
     CRGB color = readColor();
     for(int x = x1; x < x1+width; x++) {
-      for(int y = y1; y < y1+width; y++) {
+      for(int y = y1; y < y1+height; y++) {
         writeToBuffer[screen][getCoordForScreen(x, y, screen)] = color;
       }
     }

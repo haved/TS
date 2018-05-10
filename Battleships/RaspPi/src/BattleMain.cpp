@@ -4,6 +4,7 @@
 #include <memory>
 #include <chrono>
 #include <thread>
+#include <atomic>
 #include "ArduinoEncoder.hpp"
 #include "AudioSystem.hpp"
 
@@ -20,8 +21,26 @@ void countFPS() {
 	}
 }
 
+void serialIOSyncerThroughSpam() {
+	std::atomic<bool> keepSpamming(true);
+	auto spammerFunc = [&]() {
+		while(keepSpamming.load()) {
+			serial.write('U');
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+	};
+	std::thread spammer(spammerFunc);
+	while(serial.waitForByte() != '>');
+	keepSpamming.store(false);
+	spammer.join();
+
+	screenUpdate();
+}
+
 void gameLoop() {
 	auto inputThread = startInputListeningThread();
+
+	serialIOSyncerThroughSpam();
 
 	ModeStack modes;
 	ModeUniquePtr startMode(new MenuMode());

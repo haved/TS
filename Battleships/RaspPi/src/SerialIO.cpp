@@ -71,6 +71,8 @@ SerialIO::SerialIO() {
 	options.c_cflag |= (CLOCAL | CREAD);
 
 	tcsetattr(in, TCSANOW, &options);
+
+	tcflush(in, TCIOFLUSH); //flush data written and recieved that isn't sent or read
 }
 #endif
 
