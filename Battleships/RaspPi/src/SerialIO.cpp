@@ -37,11 +37,9 @@ std::string getWantedTTY() {
 #ifdef USE_STDIO
 SerialIO::SerialIO() {
 	const char* target = "/dev/stdin";
-	nonBlockingIn = open(target, O_RDONLY | O_NDELAY);
-	if(nonBlockingIn == -1)
+	in = open(target, O_RDONLY);
+	if(in == -1)
 		ERROR( "Failed to open " << target << ": " << strerror(errno) );
-
-	fcntl(nonBlockingIn, F_SETFL, FNDELAY);
 
 	target = "/dev/stdout";
 	out = open(target, O_WRONLY);
@@ -51,43 +49,35 @@ SerialIO::SerialIO() {
 #else
 SerialIO::SerialIO() {
 	std::string target = getWantedTTY();
-	nonBlockingIn = open(target.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-	if(nonBlockingIn == -1)
+	in = open(target.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+	if(in == -1)
 		ERROR( "Failed to open " << target << ": " << strerror(errno) );
 
-	fcntl(nonBlockingIn, F_SETFL, FNDELAY);
-	out = nonBlockingIn;
+	out = in;
 
 	const int TRASH_SIZE = 128;
 	char trash[TRASH_SIZE];
-	read(trash, TRASH_SIZE);
+	fcntl(in, F_SETFL, FNDELAY); //No blocking
+    if(read(in, trash, TRASH_SIZE) == -1 && errno != EAGAIN)
+		ERROR( "Failed eating trash from start of serial: " << strerror(errno) );
+	fcntl(in, F_SETFL, 0); //We do blocking
 }
 #endif
 
 SerialIO::~SerialIO() {
-	fcntl(nonBlockingIn, F_SETFL, 0);
-	close(nonBlockingIn);
-	if(nonBlockingIn != out)
+	close(in);
+	if(in != out)
 		close(out);
 }
 
-int SerialIO::getByteIfReady() {
-	char in;
-	int result = read(&in, 1);
-	if(result == 0)
-		return -1;
-	return in;
-}
-
-int SerialIO::read(char* buf, int maxLen) {
-	int result = ::read(nonBlockingIn, buf, maxLen);
+char SerialIO::waitForByte() {
+	char c;
+	int result = read(in, &c, 1);
 	if(result == 0)
 		ERROR( "EOF in Serial in" );
-	else if(result == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
+	else if(result == -1)
 	    ERROR( "Serial in read failed: " << strerror(errno) );
-	/*if(result > 0)
-	  std::cerr << "Got something" << std::endl;*/
-	return std::max(result, 0);
+	return c;
 }
 
 void SerialIO::print(const char* c) {

@@ -3,9 +3,18 @@
 #include <iostream>
 #include <cstring>
 
+#include <thread>
+#include <condition_variable>
+#include <atomic>
+#include <mutex>
+
+#define scoped_lock unique_lock<std::mutex>
+
 #define ERROR(s) do { std::cerr << "ArduinoEncoder: " << __LINE__ << ": " << s << std::endl; return; } while(false)
 
 SerialIO* global_serial_ptr;
+std::atomic<bool> atomic_keepThreadRunning;
+std::mutex inputMutex;
 
 void sendColorChannels(CRGB color) {
 	serial.write(color.r);
@@ -50,23 +59,27 @@ void setAllScreens(CRGB color) {
 	sendColorChannels(color);
 }
 
-bool doneWithRepaint;
+bool threaded_doneWithRepaint;
+std::condition_variable repaintCV;
 
 void screenUpdate() {
-    doneWithRepaint = false;
+	std::scoped_lock lock(inputMutex);
+    threaded_doneWithRepaint = false;
 	serial.write('U');
 	serial.flush();
+	repaintCV.wait(lock, [&]{return threaded_doneWithRepaint;});
 }
 
-bool transitionsRunning;
+bool threaded_transitionsRunning;
 
 void startTransition(Player p, Screen s, int frames) {
+	std::scoped_lock lock(inputMutex);
 	serial.write('T');
     sendPlayerAndScreen(p, s);
 	assert(frames > 0 && frames < 256);
 	serial.write(frames);
 
-	transitionsRunning = true;
+	threaded_transitionsRunning = true;
 }
 
 void startTransitionAll(int frames) {
@@ -77,49 +90,50 @@ void startTransitionAll(int frames) {
 }
 
 bool anyTransitionsRunning() {
-	return transitionsRunning;
+	std::scoped_lock lock(inputMutex);
+	return threaded_transitionsRunning;
 }
 
+ButtonState<bool> threaded_buttonState;
+
 void updateButtonState(ButtonState<bool>& state) {
-	const int BUF_SIZE = 10;
-	static int pos = 0;
-	static char buffer[BUF_SIZE];
+    std::scoped_lock lock(inputMutex);
+    state = threaded_buttonState;
+}
 
-	do {
-		int read = serial.read(buffer+pos, BUF_SIZE-pos);
-		pos += read;
-
-		auto moveBack = [&](int steps) {
-			memcpy(buffer, buffer+steps, pos-steps);
-			pos-=steps;
-			memset(buffer+pos, 0, steps);
-		};
-
-		while(pos > 0 && buffer[0] != '>') {
-			std::cerr << "Recieved '" << buffer[0] << "' when waiting for '>'" << std::endl;
-			moveBack(1);
+void inputListeningThread() {
+	while(atomic_keepThreadRunning.load()) {
+		char c = serial.waitForByte();
+		if(c != '>') {
+			std::cerr << "Got trash from serial: " << c << std::endl;
+			continue;
 		}
 
-		auto emp = [&](int p) { return p >= pos; };
+		c = serial.waitForByte();
 
-		if(emp(1))
-			return;
-		char c = buffer[1];
 		if(c == 'T') {
-			transitionsRunning = false;
-			moveBack(2); //   >T
+			std::scoped_lock lock(inputMutex);
+			threaded_transitionsRunning = false;
 		} else if(c == '>') {
-			doneWithRepaint = true;
-			moveBack(2); //   >>
+			std::scoped_lock lock(inputMutex);
+			threaded_doneWithRepaint = true;
+			repaintCV.notify_one();
 		} else if(c == 'D' || c == 'U') {
 			bool down = c == 'D';
-			if(emp(2))
-				return;
-			state.raw[buffer[2]-'A']=down;
-			moveBack(3); //   >DA
-		} else {
-			std::cerr << "Unrecognized command: " << c << std::endl;
-			moveBack(2); //   >?
-		}
-	} while(pos);
+			int button = serial.waitForByte()-'A';
+			std::scoped_lock lock(inputMutex);
+			threaded_buttonState.raw[button]=down;
+		} else
+			std::cerr << "Unrecognized command: >" << c << std::endl;
+	}
+}
+
+std::thread startInputListeningThread() {
+	assert(global_serial_ptr);
+	atomic_keepThreadRunning.store(true);
+	return std::thread(inputListeningThread);
+}
+
+void stopInputListeningThread() {
+	atomic_keepThreadRunning.store(false);
 }

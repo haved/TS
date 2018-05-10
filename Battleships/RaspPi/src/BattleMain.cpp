@@ -15,6 +15,8 @@ int main() {
 	SerialIO serialIO;
 	global_serial_ptr = &serialIO;
 
+	auto inputThread = startInputListeningThread();
+
 	ModeStack modes;
 	ModeUniquePtr startMode(new MenuMode());
     modes.emplace_back(std::move(startMode));
@@ -36,6 +38,9 @@ int main() {
 	}
 
 	stopAudioSystem();
+
+	stopInputListeningThread();
+	inputThread.join();
 
 	std::cout << "Battlearcade ended" << std::endl;
 }

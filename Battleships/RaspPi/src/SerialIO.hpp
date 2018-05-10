@@ -2,14 +2,13 @@
 
 class SerialIO {
 private:
-	int nonBlockingIn;
+	int in;
 	int out;
 public:
 	SerialIO();
 	~SerialIO();
 
-	int getByteIfReady();
-	int read(char* buf, int maxLen);
+	char waitForByte();
 
 	void print(const char* text);
 	void write(char byt);

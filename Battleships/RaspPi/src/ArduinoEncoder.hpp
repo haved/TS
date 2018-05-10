@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 #include "SerialIO.hpp"
 #include "Util.hpp"
 
@@ -49,3 +51,6 @@ void startTransitionAll(int frames);
 bool anyTransitionsRunning();
 
 void updateButtonState(ButtonState<bool>& state);
+
+std::thread startInputListeningThread();
+void stopInputListeningThread();
