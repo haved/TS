@@ -12,7 +12,7 @@
 - tar -xzf SDL2-2.0.8.tar.gz
 - cd SDL2-2.0.8
 - mkdir build && cd build
-- ../configure --host=armv71-raspberry-linux-gnueabihf --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl
+- ../configure --host=armv71-raspberry-linux-gnueabihf --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl
 - make -j4
 - sudo make install
 
@@ -32,7 +32,8 @@
 - cd TS/Battleships/RaspPi
 - ./compileAndRun.sh
 
-#### Install Arduino IDE?
-Serial is awful, ok?
+#### Getting serial to work
+I don't think you need, say, arduino IDE installed for Serial to work, but it was a nice debugging tool, seing as our program only recieved serial input upon starting the program, at which point all input came at once.
+I think I fixed this by stealing a bunch of termios flags from pyserial.
 
 #### Autostart without a desktop environment
