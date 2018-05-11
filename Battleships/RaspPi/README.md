@@ -56,8 +56,7 @@ Put the following in /etc/init.d/BattleshipsPullRun.sh
 start() {
 sleep 4
 cd /home/pi/Development/TS/Battleships/RaspPi
-./pullAndRunForever.sh &
-disown
+nohup ./pullAndRunForever.sh > /dev/null 2>&1 &
 echo "BattleshipsPullRun.sh has now started the process"
 }
 
