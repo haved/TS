@@ -4,7 +4,7 @@
 #define HEIGHT 10
 #define LED_COUNT WIDTH*HEIGHT
 
-#define DATA_PIN_MIN 2 /*24*/
+#define DATA_PIN_MIN 24
 #define SCREEN_COUNT 4
 
 //24: P1_ATK
@@ -17,15 +17,13 @@
 #define ATK 0
 #define DEF 1
 
-#define BUTTON_PIN_MIN 0/*30*/
-#define P2_BTN_OFFSET 0 /*7*/
+#define BUTTON_PIN_MIN 30
+#define P2_BTN_OFFSET 7
 #define BUTTON_COUNT P2_BTN_OFFSET*2
 
 CRGB leds[SCREEN_COUNT][LED_COUNT];
-//CRGB colorFrom[SCREEN_COUNT][LED_COUNT];
-//CRGB colorTo[SCREEN_COUNT][LED_COUNT];
-#define colorFrom leds
-#define colorTo leds
+CRGB colorFrom[SCREEN_COUNT][LED_COUNT];
+CRGB colorTo[SCREEN_COUNT][LED_COUNT];
 int transProg[SCREEN_COUNT] = {};
 int transGoal[SCREEN_COUNT] = {};
 int transGoalSum = 0;
@@ -72,6 +70,8 @@ void setScreenToFraction(int screen, float fraction) {
 inline int getCoordForScreen(int x, int y, int screen) {
   //x=0 is Player 1's left, and Player 2's right
   //y=0 is "between" the attack and defend screen (i.e. +y is up on ATK, down on DEF)
+  if(y % 2 == 1)
+    x = WIDTH-1-x;
   return x+y*WIDTH; //TODO
 }
 
