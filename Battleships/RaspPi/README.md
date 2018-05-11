@@ -43,7 +43,7 @@ I think I fixed this by stealing a bunch of termios flags from pyserial.
 #### Autostart without a desktop environment
 Put the following in /etc/init.d/BattleshipsPullRun.sh
 ```
-#!/bin/sh
+#!/bin/bash
 ### BEGIN INIT INFO
 # Provides:             BattleshipsPullRun.sh
 # Required-Start:       $all
@@ -56,12 +56,15 @@ Put the following in /etc/init.d/BattleshipsPullRun.sh
 start() {
 sleep 4
 cd /home/pi/Development/TS/Battleships/RaspPi
-./pullAndRunForever.sh
+./pullAndRunForever.sh &
+disown
+echo "BattleshipsPullRun.sh has now started the process"
 }
 
 stop() {
-pkill -f "/bin/sh ./pullAndRunForever.sh"
+pkill -f "./pullAndRunForever.sh"
 killall Battleships
+echo "BattleshipsPullRun.sh has now stopped the process"
 }
 
 case "$1" in
