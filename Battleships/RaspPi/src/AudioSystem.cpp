@@ -13,7 +13,7 @@
 void startAudioSystem() {
 	if(SDL_Init(SDL_INIT_AUDIO) != 0)
 		ERROR("Failed to init SDL for audio" << SDL_GetError());
-	if(Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
+	if(Mix_OpenAudio(22050, AUDIO_S16SYS, 1, 1024) == -1)
 		ERROR("Failed to Mix_OpenAudio" << SDL_GetError());
 }
 

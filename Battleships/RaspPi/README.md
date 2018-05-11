@@ -8,7 +8,8 @@
 
 #### Getting audio to work (before building SDL_mixer)
 - sudo chmod <user> -a -G audio
-- sudo apt-get install libsmpeg-dev libogg-dev libvorbis-dev libmodplug-dev
+- sudo apt-get install libsmpeg-dev libogg-dev libvorbis-dev libmodplug-dev libmpg123-dev
+ - Might not need smpeg anymore
 
 #### SDL2
 - cd ~/Development
