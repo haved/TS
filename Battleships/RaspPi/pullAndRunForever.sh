@@ -1,3 +1,4 @@
+./compileAndRun.sh
 git pull
 while true; do
 	./compileAndRun.sh
