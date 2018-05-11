@@ -6,6 +6,10 @@
 
 - mkdir Development
 
+#### Getting audio to work (before building SDL_mixer)
+- sudo chmod <user> -a -G audio
+- sudo apt-get install libsmpeg-dev libogg-dev libvorbis-dev libmodplug-dev
+
 #### SDL2
 - cd ~/Development
 - wget https://www.libsdl.org/release/SDL2-2.0.8.tar.gz
@@ -37,3 +41,45 @@ I don't think you need, say, arduino IDE installed for Serial to work, but it wa
 I think I fixed this by stealing a bunch of termios flags from pyserial.
 
 #### Autostart without a desktop environment
+Put the following in /etc/init.d/BattleshipsPullRun.sh
+```
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:             BattleshipsPullRun.sh
+# Required-Start:       $all
+# Required-Stop:
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Launch the pullAndRunForever script
+### END INIT INFO
+
+start() {
+sleep 4
+cd /home/pi/Development/TS/Battleships/RaspPi
+./pullAndRunForever.sh
+}
+
+stop() {
+pkill -f "/bin/sh ./pullAndRunForever.sh"
+killall Battleships
+}
+
+case "$1" in
+  start)
+    start
+	;;
+  stop)
+    stop
+	;;
+  restart)
+    stop
+	start
+	;;
+  *)
+  echo "Usage: $0 <start|stop|restart>"
+```
+
+`chmod +x` the file, and run the following command to make the service start at boot:
+```
+update-rc.d BattleshipsPullRun.sh defaults
+```
