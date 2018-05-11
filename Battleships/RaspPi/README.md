@@ -77,6 +77,7 @@ case "$1" in
 	;;
   *)
   echo "Usage: $0 <start|stop|restart>"
+esac
 ```
 
 `chmod +x` the file, and run the following command to make the service start at boot:
