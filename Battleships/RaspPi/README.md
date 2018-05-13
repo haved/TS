@@ -6,10 +6,9 @@
 
 - mkdir Development
 
-#### Getting audio to work (before building SDL_mixer)
+#### Getting audio to work (before building SDL2)
 - sudo chmod <user> -a -G audio
-- sudo apt-get install libsmpeg-dev libogg-dev libvorbis-dev libmodplug-dev libmpg123-dev
- - Might not need smpeg anymore
+- sudo apt-get install libasound2-dev libpulse-dev libsmpeg-dev libogg-dev libvorbis-dev libmodplug-dev libmpg123-dev
 
 #### SDL2
 - cd ~/Development
