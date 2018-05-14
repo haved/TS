@@ -21,20 +21,17 @@ void countFPS() {
 	}
 }
 
-std::atomic<bool> keepSpamming;
-void spammerFunc() {
-	while(keepSpamming.load()) {
-		serial.write('U');
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
-};
-
 void serialIOSyncerThroughSpam() {
-	keepSpamming.store(true);
-	std::thread spammer(spammerFunc);
-	while(serial.waitForByte() != '>' || serial.waitForByte() != '>');
-	keepSpamming.store(false);
-	spammer.detach();
+	char first = 0;
+	while(true) {
+		if(first != '>') {
+			first = serial.waitForByte();
+			continue;
+		}
+		first = serial.waitForByte();
+		if(first == '<')
+			return;
+	}
 }
 
 void gameLoop() {

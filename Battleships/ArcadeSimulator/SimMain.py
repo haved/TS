@@ -172,5 +172,7 @@ for i in range(len(keys)):
 from threading import Thread
 Thread(target=listenThread, daemon=True).start()
 
+battleships.stdin.write(b"><")
+battleships.stdin.flush()
 root.mainloop()
 

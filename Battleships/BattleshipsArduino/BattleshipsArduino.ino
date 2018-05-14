@@ -79,9 +79,15 @@ inline int getInternalScreenIndex(bool player2, bool attack) {
   return (player2 ? PLAYER2 : PLAYER1) + (attack ? ATK : DEF);
 }
 
-inline int waitForChar() {
-  while(!IO.available());
-  return IO.read();
+void sendDistressPing();
+
+inline char waitForChar() {
+  while(true) {
+    int in = IO.read();
+    if(in != -1) //timeout
+      return in;
+    sendDistressPing();
+  }
 }
 
 inline CRGB readColor() {
@@ -187,5 +193,9 @@ void handleButtonInput() {
       buttonStates[i] = but;
     }
   }
+}
+
+void sendDistressPing() { //For when you're waiting for your buddy
+  IO.print("><"):
 }
 

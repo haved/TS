@@ -122,7 +122,7 @@ void waitForCommand() {
 	if(c == 'T') {
 		std::unique_lock<std::mutex> lock(inputMutex);
 		threaded_transitionsRunning = false;
-	} else if(c == '>') {
+	} else if(c == '>' || c == '<') { // >> means update done, >< means distress
 		std::unique_lock<std::mutex> lock(inputMutex);
 		threaded_doneWithRepaint = true;
 		repaintCV.notify_one();
