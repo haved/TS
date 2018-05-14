@@ -68,6 +68,9 @@ void setScreenToFraction(int screen, float fraction) {
 }
 
 inline int getCoordForScreen(int x, int y, int screen) {
+  if(x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT)
+    delay(10000);
+  
   //x=0 is Player 1's left, and Player 2's right
   //y=0 is "between" the attack and defend screen (i.e. +y is up on ATK, down on DEF)
   if(x % 2 == 1)
