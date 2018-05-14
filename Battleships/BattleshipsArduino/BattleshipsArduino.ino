@@ -32,6 +32,7 @@ CRGB* writeToBuffer[SCREEN_COUNT] = {leds[0], leds[1], leds[2], leds[3]};
 #define IO Serial
 
 void setup() {
+  Serial.setTimeout(1000);
   Serial.begin(115200);
   
   FastLED.addLeds<WS2812B, DATA_PIN_MIN+0, GRB>(leds[0], LED_COUNT);
@@ -41,8 +42,6 @@ void setup() {
 
   for(int i = 0; i < BUTTON_COUNT; i++)
     pinMode(BUTTON_PIN_MIN+i, INPUT);
-
-  Serial.print("QQ");
 }
 
 void fill(CRGB* leds, int count, CRGB value) {
@@ -64,15 +63,16 @@ CRGB interpolate(CRGB from, CRGB to, float frac) {
 }
 
 void setScreenToFraction(int screen, float fraction) {
-  
+  for(int i = 0; i < LED_COUNT; i++)
+    leds[screen][i] = interpolate(colorFrom[screen][i], colorTo[screen][i], fraction);
 }
 
 inline int getCoordForScreen(int x, int y, int screen) {
   //x=0 is Player 1's left, and Player 2's right
   //y=0 is "between" the attack and defend screen (i.e. +y is up on ATK, down on DEF)
-  if(y % 2 == 1)
-    x = WIDTH-1-x;
-  return x+y*WIDTH; //TODO
+  if(x % 2 == 1)
+    y = HEIGHT-1-y;
+  return y+x*HEIGHT;
 }
 
 inline int getInternalScreenIndex(bool player2, bool attack) {
@@ -82,12 +82,11 @@ inline int getInternalScreenIndex(bool player2, bool attack) {
 void sendDistressPing();
 
 inline char waitForChar() {
-  while(true) {
-    int in = IO.read();
-    if(in != -1) //timeout
-      return in;
+  char byt;
+  while(IO.readBytes(&byt, 1) == 0)
     sendDistressPing();
-  }
+
+  return byt;
 }
 
 inline CRGB readColor() {
@@ -105,7 +104,7 @@ inline int readInternalScreen() {
 }
 
 inline void readXY(int* x, int* y) {
-  int byt = waitForChar();
+  int byt = waitForChar()-'0';
   *x = byt % WIDTH;
   *y = byt / WIDTH;
 }
@@ -196,6 +195,7 @@ void handleButtonInput() {
 }
 
 void sendDistressPing() { //For when you're waiting for your buddy
-  IO.print("><"):
+  IO.print("><");
+  IO.flush();
 }
 
