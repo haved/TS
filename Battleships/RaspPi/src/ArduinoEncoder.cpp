@@ -41,7 +41,7 @@ void sendPlayerAndScreen(Player p, Screen s) {
 
 void sendXY(int x, int y) {
 	assert(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT);
-	serial.write('0'+(x+y*WIDTH));
+	serial.write('\0'+(x+y*WIDTH));
 }
 
 void setSingleTile(Player p, Screen s, int x, int y, CRGB color) {

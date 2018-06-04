@@ -96,6 +96,22 @@ void MenuMode::update(ModeStack& modes) {
 
 	double interp = (sin(frameCount/30.0*TAU)+1)/2;
 	setPlayer1OptionColor(m_currentChoice, interpolate(MENU_CHOICE_COLOR_1, MENU_CHOICE_COLOR_2, interp));
+
+	static int x_pos = 0;
+	static int y_pos = 0;
+
+	setSingleTile(Player::ONE, Screen::DEFENSE, x_pos, y_pos, BLUE);
+	if(clicked(framesHeld.one()[BUTTON_UP]) && y_pos > 0)
+		y_pos--;
+	if(clicked(framesHeld.one()[BUTTON_DOWN]) && y_pos < HEIGHT-1)
+		y_pos++;
+	if(clicked(framesHeld.one()[BUTTON_LEFT]) && x_pos > 0)
+		x_pos--;
+	if(clicked(framesHeld.one()[BUTTON_RIGHT]) && x_pos < WIDTH-1)
+		x_pos++;
+
+	setSingleTile(Player::ONE, Screen::DEFENSE, x_pos, y_pos, RED);
+
 }
 
 TransitionMode::TransitionMode(int frames, bool viaBlack) : m_frames(frames), m_viaBlack(viaBlack), m_started(false) {

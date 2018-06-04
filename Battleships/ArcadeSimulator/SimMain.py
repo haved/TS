@@ -76,7 +76,7 @@ battleships = Popen([exec_name], stdout=PIPE, stdin=PIPE)
 def getByt():
         return battleships.stdout.read(1)
 def readXY():
-    byt = getByt()[0]-ord('0')
+    byt = getByt()[0]-ord('\0')
     x = byt % WIDTH
     y = byt // WIDTH
     return (x, y)

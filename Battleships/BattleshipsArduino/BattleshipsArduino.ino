@@ -107,7 +107,7 @@ inline int readInternalScreen() {
 }
 
 inline void readXY(int* x, int* y) {
-  int byt = waitForChar()-'0';
+  int byt = waitForChar()-'\0';
   *x = byt % WIDTH;
   *y = byt / WIDTH;
 }
