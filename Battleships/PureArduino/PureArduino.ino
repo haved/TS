@@ -41,13 +41,6 @@ void setAllLedArrays(CRGB color) {
     fill(leds[i], LED_COUNT, color);
 }
 
-CRGB interpolate(CRGB from, CRGB to, float frac) {
-  float t = frac;
-  float f = 1-t;
-#define intr(ch) (int)(from.ch*f+to.ch*t)
-  return CRGB{intr(r), intr(g), intr(b)};
-}
-
 void setScreenToFraction(int screen, float fraction) {
   for(int i = 0; i < LED_COUNT; i++)
     leds[screen][i] = interpolate(colorFrom[screen][i], colorTo[screen][i], fraction);
