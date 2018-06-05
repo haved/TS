@@ -22,12 +22,9 @@ void startTransition(int screen, int frames) {
 
 }
 
-#define TILE_SIZE 20
-#define SCREEN_MARGIN 20
-cairo_surface_t* surface;
-cairo_t* cr;
+GtkWidget* drawing_area;
 void updateScreens() {
-	
+	gtk_widget_queue_draw(drawing_area);
 }
 
 bool anyTransitionRunning() {
@@ -71,34 +68,43 @@ gboolean main_tick(GtkWidget* widget, GdkFrameClock* frame_clock, gpointer user_
 	return true; //Keep going next frame
 }
 
+#define TILE_SIZE 20
+#define SCREEN_MARGIN 20
+gboolean on_draw_event(GtkWidget* widget, cairo_t* cr, gpointer user_data) {
+	static int i = 0;
+	i+=10;
+	cairo_set_source_rgb(cr, 0.6, sin(i), 0.6);
+	cairo_set_line_width(cr, 1);
+
+	cairo_rectangle(cr, 0, 0, 100, 100);
+	cairo_stroke_preserve(cr);
+	cairo_fill(cr);
+
+	return false;
+}
+
 int main(int argc, char** argv) {
 	gtk_init(&argc, &argv);
 	GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(window), "PureArduinoSim");
 	gtk_container_set_border_width (GTK_CONTAINER (window), 8);
 
-	GtkWidget* drawing_area = gtk_drawing_area_new();
-	gtk_widget_set_size_request(drawing_area, TILE_SIZE*WIDTH, TILE_SIZE*HEIGHT*4+SCREEN_MARGIN*3);
-	gtk_container_add(GTK_CONTAINER(window), drawing_area);
-
 	g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-
 	gtk_widget_add_events(window, GDK_KEY_PRESS_MASK);
 	gtk_widget_add_events(window, GDK_KEY_RELEASE_MASK);
 	g_signal_connect (G_OBJECT (window), "key_press_event", G_CALLBACK (on_key_press), NULL);
 	g_signal_connect (G_OBJECT (window), "key_release_event", G_CALLBACK (on_key_release), NULL);
-
 	gtk_widget_add_tick_callback(window, main_tick, NULL, NULL);
 
+    drawing_area = gtk_drawing_area_new();
+	gtk_widget_set_size_request(drawing_area, TILE_SIZE*WIDTH, TILE_SIZE*HEIGHT*4+SCREEN_MARGIN*3);
+	gtk_container_add(GTK_CONTAINER(window), drawing_area);
+
+	g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(on_draw_event), NULL);
+
+	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+	gtk_window_set_title(GTK_WINDOW(window), "PureArduinoSim");
 	gtk_widget_show_all(window);
 
-	surface = gdk_window_create_similar_surface (gtk_widget_get_window (drawing_area),
-												 CAIRO_CONTENT_COLOR,
-												 gtk_widget_get_allocated_width (drawing_area),
-												 gtk_widget_get_allocated_height (drawing_area));
-	cr = cairo_create(surface);
-
 	gtk_main();
-	cairo_destroy(cr);
 	return 0;
 }
