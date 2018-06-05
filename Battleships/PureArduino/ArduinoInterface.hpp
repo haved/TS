@@ -4,10 +4,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-#define dtor(x) ((double)x/180*M_PI)
-#define sin(x) sin(dtor(x))
-#define cos(x) cos(dtor(x))
-#define tan(x) tan(dtor(x))
+#define PI M_PI
 #include <inttypes.h>
 using channel = uint8_t;
 class CRGB {

@@ -1,29 +1,62 @@
 #include <gtk/gtk.h>
+#include <cstring>
 
 #include "../PureArduino/ArduinoInterface.hpp"
 
+//Screen 0 is P1_ATK
+//Screen 1 is P1_DEF
+//screen 2 is P2_ATK
+//Screen 3 is P2_DEF
+
 #define LED_COUNT WIDTH*HEIGHT
-CRGB colorFrom[LED_COUNT];
-CRGB colorTo[LED_COUNT];
+CRGB colorFrom[4][LED_COUNT];
+CRGB colorTo[4][LED_COUNT];
 int transProg[4];
 int transGoal[4];
 int transGoingMask = 0;
 
+inline int max(int a, int b) { return a>b?a:b; }
+inline int min(int a, int b) { return a<b?a:b; }
+
+//All internal screen coords have 0 in top left corner seen from P1
+int getInternalScreenCoord(int screen, int x, int y) {
+	if(screen == PLAYER1+ATK || screen == PLAYER2+DEF)
+		y = HEIGHT-1-y;
+	if(screen == PLAYER2)
+		x = WIDTH-1-x;
+	return x+y*WIDTH;
+}
+
 void setTile(int screen, int x, int y, CRGB color) {
-
+	colorTo[screen][getInternalScreenCoord(screen, x, y)] = color;
 }
-void fillRect(int screen, int x, int y, int width, int height, CRGB color) {
-
+void fillRect(int screen, int x1, int y1, int width, int height, CRGB color) {
+	for(int x = x1; x < x1+width; x++)
+		for(int y = y1; y < y1+height; y++)
+			colorTo[screen][getInternalScreenCoord(screen, x, y)] = color;
 }
+
 void fillScreen(int screen, CRGB color) {
-
+	for(int i = 0; i < LED_COUNT; i++)
+		colorTo[screen][i] = color;
 }
-void startTransition(int screen, int frames) {
 
+void startTransition(int screen, int frames) {
+	memcpy(colorFrom[screen], colorTo[screen], LED_COUNT*sizeof(CRGB));
+	transProg[screen] = 0;
+	transGoal[screen] = frames;
+	transGoingMask |= 1<<screen;
 }
 
 GtkWidget* drawing_area;
 void updateScreens() {
+	for(int i = 0; i < 4; i++) {
+		if(transGoingMask>>i & 1) {
+			transProg[i]++;
+			if(transProg[i]>=transGoal[i])
+				transGoingMask &= ~(1<<i);
+		}
+	}
 	gtk_widget_queue_draw(drawing_area);
 }
 
@@ -68,17 +101,33 @@ gboolean main_tick(GtkWidget* widget, GdkFrameClock* frame_clock, gpointer user_
 	return true; //Keep going next frame
 }
 
-#define TILE_SIZE 20
+#define TILE_SIZE_DEF 16
+#define TILE_SIZE_ATK 24
+#define BIGGEST_TILE_SIZE max(TILE_SIZE_DEF, TILE_SIZE_ATK)
 #define SCREEN_MARGIN 20
-gboolean on_draw_event(GtkWidget* widget, cairo_t* cr, gpointer user_data) {
-	static int i = 0;
-	i+=10;
-	cairo_set_source_rgb(cr, 0.6, sin(i), 0.6);
-	cairo_set_line_width(cr, 1);
 
-	cairo_rectangle(cr, 0, 0, 100, 100);
-	cairo_stroke_preserve(cr);
-	cairo_fill(cr);
+static const int screenIndexTable[] = {PLAYER2+DEF, PLAYER2+ATK, PLAYER1+ATK, PLAYER1+DEF};
+static const int tileSizeTable[] = {TILE_SIZE_DEF, TILE_SIZE_ATK, TILE_SIZE_ATK, TILE_SIZE_DEF};
+
+gboolean on_draw_event(GtkWidget* widget, cairo_t* cr, gpointer user_data) {
+	int yOffset = 0;
+	for(int i = 0; i < 4; i++) {
+	    int screenIndex = screenIndexTable[i];
+		int tileSize = tileSizeTable[i];
+		int xOffset = (int)((BIGGEST_TILE_SIZE-tileSize)*WIDTH/2.f);
+		float trans = transGoal[screenIndex] == 0 ? 1 : (float)transProg[screenIndex]/transGoal[screenIndex];
+		for(int x = 0; x < WIDTH; x++) {
+			for(int y = 0; y < HEIGHT; y++) {
+				int coord = x+y*WIDTH;
+				CRGB color = interpolate(colorFrom[screenIndex][coord], colorTo[screenIndex][coord], trans);
+				cairo_set_source_rgb(cr, color.r/255.f, color.g/255.f, color.b/255.f);
+				cairo_rectangle(cr, xOffset + x*tileSize, yOffset + y*tileSize, tileSize-1, tileSize-1);
+				cairo_stroke_preserve(cr);
+				cairo_fill(cr);
+			}
+		}
+		yOffset += SCREEN_MARGIN + tileSize * HEIGHT;
+	}
 
 	return false;
 }
@@ -96,7 +145,7 @@ int main(int argc, char** argv) {
 	gtk_widget_add_tick_callback(window, main_tick, NULL, NULL);
 
     drawing_area = gtk_drawing_area_new();
-	gtk_widget_set_size_request(drawing_area, TILE_SIZE*WIDTH, TILE_SIZE*HEIGHT*4+SCREEN_MARGIN*3);
+	gtk_widget_set_size_request(drawing_area, BIGGEST_TILE_SIZE*WIDTH, (TILE_SIZE_ATK+TILE_SIZE_DEF)*HEIGHT*2+SCREEN_MARGIN*3);
 	gtk_container_add(GTK_CONTAINER(window), drawing_area);
 
 	g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(on_draw_event), NULL);

@@ -1,5 +1,5 @@
 CXX=g++
-CFLAGS=-I. `pkg-config --cflags gtk+-3.0` -std=c++14
+CFLAGS=-I. `pkg-config --cflags gtk+-3.0` -std=c++14 -g
 DEPS = ../PureArduino/ArduinoInterface.hpp
 
 all: GameLogic.o main.o Util.o
