@@ -1,4 +1,4 @@
-#include "../PureArduino/ArduinoInterface.hpp"
+#include "FakeArduino.hpp"
 
 CRGB CRGB::White = {255, 255, 255};
 CRGB CRGB::Black = {0, 0, 0};
