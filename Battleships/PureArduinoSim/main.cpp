@@ -42,7 +42,13 @@ void fillScreen(int screen, CRGB color) {
 }
 
 void startTransition(int screen, int frames) {
-	memcpy(colorFrom[screen], colorTo[screen], LED_COUNT*sizeof(CRGB));
+
+	float trans = transGoal[screen] == 0 ? 1 : transProg[screen] / (float)transGoal[screen];
+	for(int i = 0; i < LED_COUNT; i++)
+		colorFrom[screen][i] = interpolate(colorFrom[screen][i], colorTo[screen][i], trans);
+
+	if(frames <= 0)
+		frames = 1; //Will instantly meet the goal upon next render
 	transProg[screen] = 0;
 	transGoal[screen] = frames;
 	transGoingMask |= 1<<screen;
@@ -125,7 +131,7 @@ gboolean on_draw_event(GtkWidget* widget, cairo_t* cr, gpointer user_data) {
 	    int screenIndex = screenIndexTable[i];
 		int tileSize = tileSizeTable[i];
 		int xOffset = (int)((BIGGEST_TILE_SIZE-tileSize)*WIDTH/2.f);
-		float trans = transGoal[screenIndex] == 0 ? 1 : (float)transProg[screenIndex]/transGoal[screenIndex];
+		float trans = transGoal[screenIndex] == 0 ? 1 : transProg[screenIndex]/(float)transGoal[screenIndex];
 		for(int x = 0; x < WIDTH; x++) {
 			for(int y = 0; y < HEIGHT; y++) {
 				int coord = x+y*WIDTH;

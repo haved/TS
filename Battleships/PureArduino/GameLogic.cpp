@@ -14,9 +14,10 @@ bool clicked(int framesHeld) {
 	return false;
 }
 
-int currMode = MENU_MODE;
+int currMode = SPLASH_SCREEN_MODE;
 bool changedMode = true;
 int frameCount = 0;
+int lastFrameInteractedWith = 0;
 
 void instantSwitchModeTo(int mode) {
 	currMode = mode;
@@ -24,8 +25,7 @@ void instantSwitchModeTo(int mode) {
 }
 
 void lightTransitionTo(int mode, int frames) {
-	for(int i = 0; i < 4; i++)
-		startTransition(i, frames);
+	startTransitionAll(frames);
     instantSwitchModeTo(mode);
 }
 
@@ -45,9 +45,11 @@ void updateHeavyTransitionMode(bool first) {
     lightTransitionTo(heavyTransitionTarget, heavyTransitionFrames);
 }
 
+void updateSplashScreenMode(bool changed); //In SplashScreen.cpp
 void updateMenuMode(bool changed); //In MenuMode.cpp
 void callModeUpdateFunction(int mode, bool changed) {
 	switch(mode) {
+	case SPLASH_SCREEN_MODE: updateSplashScreenMode(changed); break;
     case MENU_MODE: updateMenuMode(changed); break;
     case HEAVY_TRANSITION_MODE: updateHeavyTransitionMode(changed); break;
     default: break;
@@ -58,13 +60,18 @@ void loop() {
 	getButtonStates(buttons);
 
 	do {
+		frameCount++;
+
 		for(int i = 0; i < BUTTON_COUNT; i++) {
 			auto& fH = framesHeld.raw[i];
 			fH = buttons.raw[i] ? fH+1 : 0;
+			if(fH)
+				lastFrameInteractedWith = frameCount;
 		}
 
 		if(changedMode) {
 			frameCount = 0;
+			lastFrameInteractedWith = 0;
 			changedMode = false;
 			callModeUpdateFunction(currMode, true);
 		} else
@@ -72,6 +79,4 @@ void loop() {
 	} while(changedMode);
 
 	updateScreens();
-
-	frameCount++;
 }

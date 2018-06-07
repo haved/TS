@@ -41,10 +41,14 @@ void setTile(int screen, int x, int y, CRGB color);
 void fillRect(int screen, int x, int y, int width, int height, CRGB color);
 void fillScreen(int screen, CRGB color);
 inline void fillAllScreens(CRGB color) {
-  for(int i = 0; i < 4; i++)
-    fillScreen(i, color);
+	for(int i = 0; i < 4; i++)
+		fillScreen(i, color);
 }
 void startTransition(int screen, int frames);
+inline void startTransitionAll(int frames) {
+	for(int i = 0; i < 4; i++)
+		startTransition(i, frames);
+}
 void updateScreens();
 bool anyTransitionRunning();
 void getButtonStates(ButtonState<bool>& state);
@@ -56,6 +60,8 @@ inline int getInternalScreenIndex(bool player2, bool attack) {
 inline CRGB interpolate(CRGB from, CRGB to, float frac) {
 	float t = frac;
 	float f = 1-t;
-#define intr(ch) (uint8_t)(from.ch*f+to.ch*t)
+#define up(c) ((c)*(c))
+#define down(c) sqrt(c)
+#define intr(ch) (uint8_t)down(up(from.ch)*f+up(to.ch)*t)
 	return CRGB{intr(r), intr(g), intr(b)};
 }

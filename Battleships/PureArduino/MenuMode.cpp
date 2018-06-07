@@ -62,9 +62,9 @@ void drawP2CPU() {
 	drawAIText(PLAYER2+DEF);
 
 	drawPerson(PLAYER1+ATK, 1, 1, P1_EYE_COLOR, P1_SHIRT_COLOR);
-	drawComputer(PLAYER1+ATK, 5, 1);
+	drawComputer(PLAYER1+ATK, 6, 1);
 
-	drawPerson(PLAYER2+ATK, 5, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
+	drawPerson(PLAYER2+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 	drawComputer(PLAYER2+ATK, 1, 1);
 }
 
@@ -74,19 +74,20 @@ void drawP2Human() {
 	fillScreen(PLAYER1+ATK, MENU_BG);
 
 	drawPerson(PLAYER1+ATK, 1, 1, P1_EYE_COLOR, P1_SHIRT_COLOR);
-	drawPerson(PLAYER1+ATK, 5, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
+	drawPerson(PLAYER1+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 
 	drawPerson(PLAYER2+ATK, 1, 1, P1_EYE_COLOR, P1_SHIRT_COLOR);
-	drawPerson(PLAYER2+ATK, 5, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
+	drawPerson(PLAYER2+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 }
 
+#define IDLE_TIME_BEFORE_SPLASH 1000
 void updateMenuMode(bool first) {
 	static int menuChoicePos = 0;
 	static bool player2 = false;
 	static int animate_player2 = 0;
 
 	if(first) {
-	    fillScreen(PLAYER1+DEF, MENU_BG);
+        fillScreen(PLAYER1+DEF, MENU_BG);
 		menuChoicePos = 0;
 		fillRect(PLAYER1 + DEF, 0, MENU_OPTIONS_Y_OFFSET, 1, MENU_CHOICE_COUNT, MENU_OPTION_BG);
 		animate_player2 = 0;
@@ -131,5 +132,8 @@ void updateMenuMode(bool first) {
 		else
 			drawP2CPU();
 	}
+
+	if(frameCount - lastFrameInteractedWith > IDLE_TIME_BEFORE_SPLASH)
+	    instantSwitchModeTo(SPLASH_SCREEN_MODE);
 }
 

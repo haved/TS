@@ -12,7 +12,7 @@ CRGB colorFrom[SCREEN_COUNT][LED_COUNT];
 CRGB colorTo[SCREEN_COUNT][LED_COUNT];
 int transProg[SCREEN_COUNT] = {};
 int transGoal[SCREEN_COUNT] = {};
-int transGoalSum = 0;
+int transGoingMask = 0;
 CRGB* writeToBuffer[SCREEN_COUNT] = {leds[0], leds[1], leds[2], leds[3]};
 
 #define IO Serial
@@ -77,9 +77,9 @@ void fillScreen(int screen, CRGB color) {
 void startTransition(int screen, int frames) {
   if(frames <= 0)
     frames = 1;
-  transGoalSum -= transGoal[screen];
-  transGoalSum += transGoal[screen]=frames;
   transProg[screen] = 0;
+  transGoal[screen]=frames;
+  transGoingMask|=1<<screen;
   memcpy(colorFrom[screen], leds[screen], LED_COUNT*sizeof(CRGB));
   writeToBuffer[screen] = colorTo[screen];
 }
@@ -92,7 +92,7 @@ void updateScreens() {
     float frac = transProg[screen] / (float) transGoal[screen];
     setScreenToFraction(screen, frac);
     if(transProg[screen] >= transGoal[screen]) {
-      transGoalSum -= transGoal[screen];
+      transGoingMask&=~(1<<screen);
       transGoal[screen] = 0;
       writeToBuffer[screen] = leds[screen];
     }
@@ -101,7 +101,7 @@ void updateScreens() {
 }
 
 bool anyTransitionRunning() {
-  return transGoalSum != 0;
+  return transGoingMask != 0;
 }
 
 void getButtonStates(ButtonState<bool>& state) {
