@@ -19,6 +19,7 @@
 //27: P2_DEF
 
 #define BUTTON_COUNT_P1 7
+#define BTN_OFFSET_P2 BUTTON_COUNT_P1
 #define BUTTON_COUNT BUTTON_COUNT_P1 * 2
 
 #define BUTTON_UP 0
@@ -33,7 +34,7 @@ template<class T>
 struct ButtonState {
 	T raw[BUTTON_COUNT];
 	inline T* one() { return raw; }
-	inline T* two() { return raw+BUTTON_COUNT_P1; }
+	inline T* two() { return raw+BTN_OFFSET_P2; }
 };
 
 void setTile(int screen, int x, int y, CRGB color);

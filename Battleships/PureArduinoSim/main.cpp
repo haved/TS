@@ -19,11 +19,11 @@ inline int max(int a, int b) { return a>b?a:b; }
 inline int min(int a, int b) { return a<b?a:b; }
 
 //All internal screen coords have 0 in top left corner seen from P1
+//The GameLogic thinks 0,0 is to the left of player1 and right of player2
+//0,0 is closest to the gap between ATK and DEF
 int getInternalScreenCoord(int screen, int x, int y) {
 	if(screen == PLAYER1+ATK || screen == PLAYER2+DEF)
 		y = HEIGHT-1-y;
-	if(screen == PLAYER2)
-		x = WIDTH-1-x;
 	return x+y*WIDTH;
 }
 
@@ -70,11 +70,21 @@ void getButtonStates(ButtonState<bool>& state) {
 
 int getKeyIndex(int keyval) {
 	switch(keyval) {
-	case GDK_KEY_space: return BUTTON_A;
 	case GDK_KEY_Up: return BUTTON_UP;
 	case GDK_KEY_Down: return BUTTON_DOWN;
 	case GDK_KEY_Left: return BUTTON_LEFT;
 	case GDK_KEY_Right: return BUTTON_RIGHT;
+	case GDK_KEY_space: return BUTTON_A;
+	case GDK_KEY_Return: return BUTTON_B;
+	case GDK_KEY_BackSpace: return BUTTON_MENU;
+
+	case GDK_KEY_w: return BTN_OFFSET_P2 + BUTTON_UP;
+	case GDK_KEY_a: return BTN_OFFSET_P2 + BUTTON_DOWN;
+	case GDK_KEY_s: return BTN_OFFSET_P2 + BUTTON_LEFT;
+	case GDK_KEY_d: return BTN_OFFSET_P2 + BUTTON_RIGHT;
+	case GDK_KEY_e: return BTN_OFFSET_P2 + BUTTON_A;
+	case GDK_KEY_q: return BTN_OFFSET_P2 + BUTTON_B;
+	case GDK_KEY_Escape: return BTN_OFFSET_P2 + BUTTON_MENU;
 	default: return -1;
 	}
 }
