@@ -27,3 +27,7 @@ build_sim/%.o: %.cpp build_sim $(DEPS)
 
 build_game/%.o: ../PureArduino/%.cpp build_game $(DEPS)
 	$(CXX) $(CFLAGS_GAME) -c -o $@ $<
+
+clean:
+	rm -r build_sim build_game
+	rm ArduinoSim

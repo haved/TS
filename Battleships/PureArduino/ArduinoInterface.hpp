@@ -2,6 +2,7 @@
 
 #ifdef __AVR__
 #include <FastLED.h>
+void assert(bool val);
 #else
 #include "../PureArduinoSim/FakeArduino.hpp"
 #endif

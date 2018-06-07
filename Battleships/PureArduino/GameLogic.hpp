@@ -19,3 +19,5 @@ void lightTransitionTo(int mode, int frames);
 void heavyTransitionTo(int targetMode, int frames);
 
 void drawP2AIText(CRGB color);
+#define LEFT(p) (p==PLAYER2?1:-1)
+#define RIGHT(p) (-LEFT(p))

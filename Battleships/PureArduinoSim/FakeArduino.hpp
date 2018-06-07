@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <cassert>
 #define PI M_PI
 #include <inttypes.h>
 using channel = uint8_t;
@@ -17,3 +18,6 @@ public:
 	static CRGB Green;
 	static CRGB Blue;
 };
+
+int min(int a, int b);
+int max(int a, int b);
