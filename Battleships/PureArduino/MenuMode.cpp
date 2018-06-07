@@ -38,28 +38,12 @@ void drawComputer(int screen, int x, int y) {
 	fillRect(screen, x, y+5, 2, 2, screenColor);
 }
 
-void drawAIText(int screen) {
-	CRGB CPU_color(0, 100, 255);
-
-	//A
-	fillRect(screen, 6, 3, 2, 1, CPU_color);
-	fillRect(screen, 5, 4, 1, 4, CPU_color);
-	fillRect(screen, 8, 4, 1, 4, CPU_color);
-	fillRect(screen, 6, 5, 2, 1, CPU_color);
-
-	//I
-    fillRect(screen, 1, 3, 3, 1, CPU_color);
-	fillRect(screen, 1, 7, 3, 1, CPU_color);
-	fillRect(screen, 2, 4, 1, 3, CPU_color);
-
-}
-
 void drawP2CPU() {
 	fillScreen(PLAYER2+DEF, MENU_BG);
 	fillScreen(PLAYER2+ATK, MENU_BG);
 	fillScreen(PLAYER1+ATK, MENU_BG);
 
-	drawAIText(PLAYER2+DEF);
+	drawP2AIText(CRGB(0, 100, 255));
 
 	drawPerson(PLAYER1+ATK, 1, 1, P1_EYE_COLOR, P1_SHIRT_COLOR);
 	drawComputer(PLAYER1+ATK, 6, 1);
@@ -80,6 +64,7 @@ void drawP2Human() {
 	drawPerson(PLAYER2+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 }
 
+void configureShipPlaceMode(bool twoPlayer);
 #define IDLE_TIME_BEFORE_SPLASH 1000
 void updateMenuMode(bool first) {
 	static int menuChoicePos = 0;
@@ -113,7 +98,9 @@ void updateMenuMode(bool first) {
 
 	if(clicked(framesHeld.one()[BUTTON_A])) {
 		switch(menuChoicePos) {
-		case 0: heavyTransitionTo(SHIP_PLACE_MODE, 20); break;
+		case 0:
+			configureShipPlaceMode(player2);
+			heavyTransitionTo(SHIP_PLACE_MODE, 20); break;
 		default: heavyTransitionTo(MENU_MODE, 20); break;
 		}
 	}

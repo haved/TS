@@ -14,6 +14,7 @@ bool clicked(int framesHeld) {
 	return false;
 }
 
+
 int currMode = SPLASH_SCREEN_MODE;
 bool changedMode = true;
 int frameCount = 0;
@@ -81,4 +82,17 @@ void loop() {
 	} while(changedMode);
 
 	updateScreens();
+}
+
+void drawP2AIText(CRGB color) {
+	//A
+	fillRect(PLAYER2+DEF, 6, 3, 2, 1, color);
+	fillRect(PLAYER2+DEF, 5, 4, 1, 4, color);
+	fillRect(PLAYER2+DEF, 8, 4, 1, 4, color);
+	fillRect(PLAYER2+DEF, 6, 5, 2, 1, color);
+
+	//I
+    fillRect(PLAYER2+DEF, 1, 3, 3, 1, color);
+	fillRect(PLAYER2+DEF, 1, 7, 3, 1, color);
+	fillRect(PLAYER2+DEF, 2, 4, 1, 3, color);
 }

@@ -17,3 +17,5 @@ bool clicked(int framesHeld);
 void instantSwitchModeTo(int mode);
 void lightTransitionTo(int mode, int frames);
 void heavyTransitionTo(int targetMode, int frames);
+
+void drawP2AIText(CRGB color);
