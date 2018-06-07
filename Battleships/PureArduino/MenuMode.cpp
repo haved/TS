@@ -111,8 +111,12 @@ void updateMenuMode(bool first) {
 	CRGB color = interpolate(MENU_OPTION_COLOR_1, MENU_OPTION_COLOR_2, (sin(frameCount/5.)+1)/2);
 	setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + menuChoicePos, color);
 
-	if(clicked(framesHeld.one()[BUTTON_A]))
-		heavyTransitionTo(MENU_MODE, 20);
+	if(clicked(framesHeld.one()[BUTTON_A])) {
+		switch(menuChoicePos) {
+		case 0: heavyTransitionTo(SHIP_PLACE_MODE, 20); break;
+		default: heavyTransitionTo(MENU_MODE, 20); break;
+		}
+	}
 
 	if(clicked(framesHeld.two()[BUTTON_A]) && !player2) {
 		player2 = true;

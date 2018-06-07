@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef Arduino_h
+#ifdef __AVR__
 #include <FastLED.h>
 #else
 #include "../PureArduinoSim/FakeArduino.hpp"
@@ -37,17 +37,19 @@ struct ButtonState {
 	inline T* two() { return raw+BTN_OFFSET_P2; }
 };
 
+#define allScreens(content) \
+	for(int screen = 0; screen < 4; screen++){content;}
+
+
 void setTile(int screen, int x, int y, CRGB color);
 void fillRect(int screen, int x, int y, int width, int height, CRGB color);
 void fillScreen(int screen, CRGB color);
 inline void fillAllScreens(CRGB color) {
-	for(int i = 0; i < 4; i++)
-		fillScreen(i, color);
+	allScreens(fillScreen(screen, color));
 }
 void startTransition(int screen, int frames);
 inline void startTransitionAll(int frames) {
-	for(int i = 0; i < 4; i++)
-		startTransition(i, frames);
+	allScreens(startTransition(screen, frames));
 }
 void updateScreens();
 bool anyTransitionRunning();

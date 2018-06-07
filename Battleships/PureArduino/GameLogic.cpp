@@ -47,11 +47,13 @@ void updateHeavyTransitionMode(bool first) {
 
 void updateSplashScreenMode(bool changed); //In SplashScreen.cpp
 void updateMenuMode(bool changed); //In MenuMode.cpp
+void updateShipPlaceMode(bool changed); //In PlaceShipsMode.cpp
 void callModeUpdateFunction(int mode, bool changed) {
 	switch(mode) {
 	case SPLASH_SCREEN_MODE: updateSplashScreenMode(changed); break;
     case MENU_MODE: updateMenuMode(changed); break;
     case HEAVY_TRANSITION_MODE: updateHeavyTransitionMode(changed); break;
+	case SHIP_PLACE_MODE: updateShipPlaceMode(changed); break;
     default: break;
 	}
 }
