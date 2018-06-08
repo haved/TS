@@ -86,7 +86,7 @@ bool handlePlayerBoatPlacement(int player_global) {
 }
 
 void updateShipPlaceMode(bool redraw) {
-    allScreens(drawWholeOcean(screen));
+    allScreens(drawWholeOcean(screen, frameCount));
 
 	bool done = true;
 

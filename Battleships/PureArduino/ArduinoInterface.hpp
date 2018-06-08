@@ -50,6 +50,8 @@ inline void startTransitionAll(int frames) {allScreens(startTransition(screen, f
 void updateScreens();
 bool anyTransitionRunning();
 void getButtonStates(ButtonState<bool>& state);
+CRGB getWrittenColor(int screen, int x, int y);
+CRGB getCurrentColor(int screen, int x, int y);
 
 #include "../Sound/SoundInterface.hpp"
 

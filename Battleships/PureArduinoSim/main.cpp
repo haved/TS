@@ -12,6 +12,8 @@
 #define LED_COUNT WIDTH*HEIGHT
 CRGB colorFrom[4][LED_COUNT];
 CRGB colorTo[4][LED_COUNT];
+CRGB leds[4][LED_COUNT];
+CRGB *writeTo[4] = {leds[0], leds[1], leds[2], leds[3]};
 int transProg[4];
 int transGoal[4];
 int transGoingMask = 0;
@@ -29,24 +31,24 @@ int getInternalScreenCoord(int screen, int x, int y) {
 }
 
 void setTile(int screen, int x, int y, CRGB color) {
-	colorTo[screen][getInternalScreenCoord(screen, x, y)] = color;
+	writeTo[screen][getInternalScreenCoord(screen, x, y)] = color;
 }
 void fillRect(int screen, int x1, int y1, int width, int height, CRGB color) {
 	for(int x = x1; x < x1+width; x++)
 		for(int y = y1; y < y1+height; y++)
-			colorTo[screen][getInternalScreenCoord(screen, x, y)] = color;
+			writeTo[screen][getInternalScreenCoord(screen, x, y)] = color;
 }
 
 void fillScreen(int screen, CRGB color) {
 	for(int i = 0; i < LED_COUNT; i++)
-		colorTo[screen][i] = color;
+		writeTo[screen][i] = color;
 }
 
 void startTransition(int screen, int frames) {
 
-	float trans = transGoal[screen] == 0 ? 1 : transProg[screen] / (float)transGoal[screen];
-	for(int i = 0; i < LED_COUNT; i++)
-		colorFrom[screen][i] = interpolate(colorFrom[screen][i], colorTo[screen][i], trans);
+	memcpy(colorFrom[screen], leds[screen], LED_COUNT*sizeof(CRGB));
+
+	writeTo[screen] = colorTo[screen];
 
 	if(frames <= 0)
 		frames = 1; //Will instantly meet the goal upon next render
@@ -57,11 +59,16 @@ void startTransition(int screen, int frames) {
 
 GtkWidget* drawing_area;
 void updateScreens() {
-	for(int i = 0; i < 4; i++) {
-		if(transGoingMask>>i & 1) {
-			transProg[i]++;
-			if(transProg[i]>=transGoal[i])
-				transGoingMask &= ~(1<<i);
+	for(int screen = 0; screen < 4; screen++) {
+		if(transGoingMask & 1<<screen) {
+			transProg[screen]++;
+			float trans = transProg[screen]/(float)transGoal[screen];
+			for(int j = 0; j < LED_COUNT; j++)
+				leds[screen][j] = interpolate(colorFrom[screen][j], colorTo[screen][j], trans);
+			if(transProg[screen]>=transGoal[screen]) {
+				writeTo[screen] = leds[screen];
+				transGoingMask &= ~(1<<screen);
+			}
 		}
 	}
 	gtk_widget_queue_draw(drawing_area);
@@ -73,6 +80,16 @@ bool anyTransitionRunning() {
 ButtonState<bool> currentButtonState;
 void getButtonStates(ButtonState<bool>& state) {
 	state = currentButtonState;
+}
+
+CRGB getWrittenColor(int screen, int x, int y) {
+	int coord = getInternalScreenCoord(screen, x, y);
+	return writeTo[screen][coord];
+}
+
+CRGB getCurrentColor(int screen, int x, int y) {
+	int coord = getInternalScreenCoord(screen, x, y);
+	return leds[screen][coord];
 }
 
 int getKeyIndex(int keyval) {
@@ -132,11 +149,10 @@ gboolean on_draw_event(GtkWidget* widget, cairo_t* cr, gpointer user_data) {
 	    int screenIndex = screenIndexTable[i];
 		int tileSize = tileSizeTable[i];
 		int xOffset = (int)((BIGGEST_TILE_SIZE-tileSize)*WIDTH/2.f);
-		float trans = transGoal[screenIndex] == 0 ? 1 : transProg[screenIndex]/(float)transGoal[screenIndex];
 		for(int x = 0; x < WIDTH; x++) {
 			for(int y = 0; y < HEIGHT; y++) {
 				int coord = x+y*WIDTH;
-				CRGB color = interpolate(colorFrom[screenIndex][coord], colorTo[screenIndex][coord], trans);
+				CRGB color = leds[screenIndex][coord];
 				cairo_set_source_rgb(cr, color.r/255.f, color.g/255.f, color.b/255.f);
 				cairo_rectangle(cr, xOffset + x*tileSize, yOffset + y*tileSize, tileSize-1, tileSize-1);
 				cairo_stroke_preserve(cr);
