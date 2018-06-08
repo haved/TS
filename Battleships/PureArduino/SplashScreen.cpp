@@ -8,7 +8,7 @@ void updateSplashScreenMode(bool first) {
 
 	if(clicked(buttons.one()[BUTTON_A]) || clicked(buttons.one()[BUTTON_B])
 	   || clicked(buttons.two()[BUTTON_A]) || clicked(buttons.two()[BUTTON_B]))
-		heavyTransitionTo(MENU_MODE, 30);
+		heavyTransitionTo(MENU_MODE, 15);
 
 	static int currentScreen = 0;
 	if(first)

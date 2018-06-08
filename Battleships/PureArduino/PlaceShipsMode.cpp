@@ -1,12 +1,14 @@
 #include "ArduinoInterface.hpp"
 #include "GameLogic.hpp"
 #include "Battleship.hpp"
+#include "LotsOfHeader.hpp"
 
 #define B21 Boat{2, 1, {100, 250, 120}}
+#define C21 Boat{2, 1, {200, 160, 230}}
 #define B31 Boat{3, 1, {250, 250, 120}}
 #define B41 Boat{4, 1, {200, 250, 250}}
 #define B22 Boat{2, 2, {250, 10, 100}}
-const Boat DEFAULT_BOATS[] = {B21, B21, B31, B41, B22};
+const Boat DEFAULT_BOATS[] = {B21, C21, B31, B41, B22};
 #define BOAT_COUNT (int)(sizeof(DEFAULT_BOATS)/sizeof(*DEFAULT_BOATS))
 
 Boat boats[2][BOAT_COUNT];
@@ -18,22 +20,6 @@ void configureShipPlaceMode(bool twoPlayer_p) {
 	boatsPlaced[0] = boatsPlaced[1] = 0;
 	for(int i = 0; i < BOAT_COUNT; i++)
 		boats[0][i] = boats[1][i] = DEFAULT_BOATS[i];
-}
-
-#define OCEAN_BG CRGB(50, 50, 180)
-#define OCEAN_BG2 CRGB(90, 100, 220)
-
-inline void drawOceanTile(int screen, int x, int y) {
-	float brightSpotA = fmod(5+frameCount/(float)10, WIDTH)+WIDTH/2;
-	float brightSpotB = brightSpotA-WIDTH;
-	float xSub = fmin(fabs(x-brightSpotA), fabs(x-brightSpotB))/2;
-	setTile(screen, x, y, interpolate(OCEAN_BG, OCEAN_BG2, (3+y-xSub)/(HEIGHT+2)));
-}
-
-inline void drawWholeOcean(int screen) {
-	for(int x = 0; x < WIDTH; x++)
-		for(int y = 0; y < HEIGHT; y++)
-			drawOceanTile(screen, x, y);
 }
 
 #define OVERLAP_BOAT_COLOR1 CRGB(255, 0, 0)
@@ -50,7 +36,7 @@ bool handlePlayerBoatPlacement(int player_global) {
 
 	int* buttons = framesHeld.raw+(p*BTN_OFFSET_P2);
 	if(placed > 0 && clicked(buttons[BUTTON_MENU]))
-		placed--;
+		placed--; //TODO: Play revert sound
 
 	if(placed == BOAT_COUNT)
 		return true;
@@ -70,9 +56,9 @@ bool handlePlayerBoatPlacement(int player_global) {
 		moving.rotate();
 
 	if(moving.equals(placing));
-	else if(!moving.inBounds()); //TODO: Play sound
+	else if(!moving.inBounds()); //TODO: Play error sound
 	else
-		placing = moving;
+		placing = moving; //TODO Play move sound
 
 	bool overlapping = false;
 	for(int i = 0; i < placed && !overlapping; i++)
@@ -88,7 +74,7 @@ bool handlePlayerBoatPlacement(int player_global) {
 	if(clicked(buttons[BUTTON_A])) {
 		if(overlapping); //TODO Play error sound
 		else
-			placed++;
+			placed++; //TODO Play placed sound
 	}
 
 	return false;
@@ -105,6 +91,10 @@ void updateShipPlaceMode(bool first) {
 		done &= handlePlayerBoatPlacement(PLAYER2);
 	done &= handlePlayerBoatPlacement(PLAYER1);
 
-	if(done)
-		heavyTransitionTo(MENU_MODE, 100);
+	if(done) {
+		configureBattleshipsMode(boats[0], BOAT_COUNT, boats[1], BOAT_COUNT);
+		heavyTransitionTo(BS_GAME_MODE, 100); //TODO Play OK sound
+	}
+   	if(framesHeld.one()[BUTTON_MENU] + framesHeld.two()[BUTTON_MENU] > 100)
+		heavyTransitionTo(MENU_MODE, 20); //TODO Play back to menu sound
 }

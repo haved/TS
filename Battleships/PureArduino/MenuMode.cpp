@@ -1,5 +1,6 @@
 #include "GameLogic.hpp"
 #include "ArduinoInterface.hpp"
+#include "LotsOfHeader.hpp"
 
 #define MENU_BG CRGB(230, 200, 220)
 #define MENU_OPTION_BG CRGB(80, 200, 80)
@@ -64,7 +65,6 @@ void drawP2Human() {
 	drawPerson(PLAYER2+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 }
 
-void configureShipPlaceMode(bool twoPlayer);
 #define IDLE_TIME_BEFORE_SPLASH 1000
 void updateMenuMode(bool first) {
 	static int menuChoicePos = 0;
@@ -100,7 +100,7 @@ void updateMenuMode(bool first) {
 		switch(menuChoicePos) {
 		case 0:
 			configureShipPlaceMode(player2);
-			heavyTransitionTo(SHIP_PLACE_MODE, 20); break;
+			heavyTransitionTo(SHIP_PLACE_MODE, 10); break;
 		default: heavyTransitionTo(MENU_MODE, 20); break;
 		}
 	}
