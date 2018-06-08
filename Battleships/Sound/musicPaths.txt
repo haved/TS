@@ -1,0 +1,2 @@
+MUSIC(MENU_MUSIC, "menuMusic.mp3"),
+MUSIC(PIRATE_MUSIC, "pirateMusic.mp3")

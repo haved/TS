@@ -1,0 +1,4 @@
+SOUND(MOVE_ACTION, "moveAction.wmv"),
+SOUND(ILLEGAL_MOVE, "illegalMoce.wmv"),
+SOUND(ACTION, "action.wmv"),
+SOUND(DONE, "done.wmv")

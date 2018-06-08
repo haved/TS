@@ -41,24 +41,24 @@ struct ButtonState {
 #define allScreens(content) \
 	for(int screen = 0; screen < 4; screen++){content;}
 
-
 void setTile(int screen, int x, int y, CRGB color);
 void fillRect(int screen, int x, int y, int width, int height, CRGB color);
 void fillScreen(int screen, CRGB color);
-inline void fillAllScreens(CRGB color) {
-	allScreens(fillScreen(screen, color));
-}
+inline void fillAllScreens(CRGB color) {allScreens(fillScreen(screen, color));}
 void startTransition(int screen, int frames);
-inline void startTransitionAll(int frames) {
-	allScreens(startTransition(screen, frames));
-}
+inline void startTransitionAll(int frames) {allScreens(startTransition(screen, frames));}
 void updateScreens();
 bool anyTransitionRunning();
 void getButtonStates(ButtonState<bool>& state);
 
-inline int getInternalScreenIndex(bool player2, bool attack) {
-	return (player2 ? PLAYER2 : PLAYER1) + (attack ? ATK : DEF);
-}
+void playSoundEffect(int soundCode);
+void pauseSoundEffects();
+void resumeSoundEffects();
+void stopSoundEffects();
+void loopMusic(int musicCode);
+void pauseMusic();
+void resumeMusic();
+void fadeOutMusic(int millis);
 
 inline CRGB interpolate(CRGB from, CRGB to, float frac) {
 	float t = frac;
