@@ -17,6 +17,7 @@ bool clicked(int framesHeld) {
 
 int currMode = SPLASH_SCREEN_MODE;
 bool changedMode = true;
+bool redrawWanted = false;
 int frameCount = 0;
 int lastFrameInteractedWith = 0;
 
@@ -62,23 +63,25 @@ void callModeUpdateFunction(int mode, bool changed) {
 void loop() {
 	getButtonStates(buttons);
 
+	frameCount++;
+	for(int i = 0; i < BUTTON_COUNT; i++) {
+		auto& fH = framesHeld.raw[i];
+		fH = buttons.raw[i] ? fH+1 : 0;
+		if(fH)
+			lastFrameInteractedWith = frameCount;
+	}
+
 	do {
-		frameCount++;
-
-		for(int i = 0; i < BUTTON_COUNT; i++) {
-			auto& fH = framesHeld.raw[i];
-			fH = buttons.raw[i] ? fH+1 : 0;
-			if(fH)
-				lastFrameInteractedWith = frameCount;
-		}
-
 		if(changedMode) {
 			frameCount = 0;
+			for(int i = 0; i < BUTTON_COUNT; i++)
+				framesHeld.raw[i] = 0;
 			lastFrameInteractedWith = 0;
 			changedMode = false;
 			callModeUpdateFunction(currMode, true);
 		} else
-			callModeUpdateFunction(currMode, false);
+			callModeUpdateFunction(currMode, redrawWanted);
+	    redrawWanted = false;
 	} while(changedMode);
 
 	updateScreens();
@@ -95,4 +98,8 @@ void drawP2AIText(CRGB color) {
     fillRect(PLAYER2+DEF, 1, 3, 3, 1, color);
 	fillRect(PLAYER2+DEF, 1, 7, 3, 1, color);
 	fillRect(PLAYER2+DEF, 2, 4, 1, 3, color);
+}
+
+void askForRedraw() {
+	redrawWanted = true;
 }

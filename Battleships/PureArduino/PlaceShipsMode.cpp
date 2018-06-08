@@ -101,9 +101,6 @@ void updateShipPlaceMode(bool first) {
 		heavyTransitionTo(BS_GAME_MODE, 100);
 		playSoundEffect(SOUND_DONE);
 	}
-   	if(framesHeld.one()[BUTTON_MENU] + framesHeld.two()[BUTTON_MENU] > 100) {
-		heavyTransitionTo(MENU_MODE, 20);
-		playSoundEffect(SOUND_DONE);
-	}
 
+	handleHoldEscToMenu();
 }

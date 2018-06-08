@@ -133,3 +133,31 @@ void updateMenuMode(bool first) {
 	    instantSwitchModeTo(SPLASH_SCREEN_MODE);
 }
 
+#define HOLD_FRAMES 100
+#define HOLD_WAIT_UNTIL_SHOW 10
+#define HOLD_COLOR CRGB(70, 20, 20)
+void handleHoldEscToMenu() {
+	int held = framesHeld.one()[BUTTON_MENU] + framesHeld.two()[BUTTON_MENU];
+    int heldPixels = (held-HOLD_WAIT_UNTIL_SHOW)*(WIDTH*HEIGHT/2)/(HOLD_FRAMES-HOLD_WAIT_UNTIL_SHOW);
+
+	if(heldPixels > 0) {
+		int fullRows = heldPixels / WIDTH;
+		int rest = heldPixels % WIDTH;
+
+		if(fullRows > 0) {
+			allScreens(fillRect(screen, 0, 0, WIDTH, fullRows, HOLD_COLOR));
+			allScreens(fillRect(screen, 0, HEIGHT-fullRows, WIDTH, fullRows, HOLD_COLOR));
+		}
+		if(rest > 0) {
+			allScreens(fillRect(screen, 0, fullRows, rest, 1, HOLD_COLOR));
+			allScreens(fillRect(screen, WIDTH-rest, HEIGHT-1-fullRows, rest, 1, HOLD_COLOR));
+		}
+
+		askForRedraw();
+	}
+
+	if(held >= HOLD_FRAMES) {
+		heavyTransitionTo(MENU_MODE, 20);
+		playSoundEffect(SOUND_DONE);
+	}
+}
