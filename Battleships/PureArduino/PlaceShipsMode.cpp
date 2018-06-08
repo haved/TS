@@ -85,7 +85,7 @@ bool handlePlayerBoatPlacement(int player_global) {
 	return false;
 }
 
-void updateShipPlaceMode(bool first) {
+void updateShipPlaceMode(bool redraw) {
     allScreens(drawWholeOcean(screen));
 
 	bool done = true;
@@ -98,7 +98,7 @@ void updateShipPlaceMode(bool first) {
 
 	if(done) {
 		configureBattleshipsMode(boats[0], BOAT_COUNT, boats[1], BOAT_COUNT);
-		heavyTransitionTo(BS_GAME_MODE, 100);
+		heavyTransitionTo(BS_GAME_MODE, 40);
 		playSoundEffect(SOUND_DONE);
 	}
 

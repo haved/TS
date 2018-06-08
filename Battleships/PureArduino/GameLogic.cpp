@@ -47,15 +47,17 @@ void updateHeavyTransitionMode(bool first) {
     lightTransitionTo(heavyTransitionTarget, heavyTransitionFrames);
 }
 
-void updateSplashScreenMode(bool changed); //In SplashScreen.cpp
-void updateMenuMode(bool changed); //In MenuMode.cpp
-void updateShipPlaceMode(bool changed); //In PlaceShipsMode.cpp
-void callModeUpdateFunction(int mode, bool changed) {
+void updateSplashScreenMode(bool redraw); //In SplashScreen.cpp
+void updateMenuMode(bool redraw); //In MenuMode.cpp
+void updateShipPlaceMode(bool redraw); //In PlaceShipsMode.cpp
+void updateBattleshipsMode(bool redraw); //In BattleshipsMode.cpp
+void callModeUpdateFunction(int mode, bool redraw) {
 	switch(mode) {
-	case SPLASH_SCREEN_MODE: updateSplashScreenMode(changed); break;
-    case MENU_MODE: updateMenuMode(changed); break;
-    case HEAVY_TRANSITION_MODE: updateHeavyTransitionMode(changed); break;
-	case SHIP_PLACE_MODE: updateShipPlaceMode(changed); break;
+	case SPLASH_SCREEN_MODE: updateSplashScreenMode(redraw); break;
+    case MENU_MODE: updateMenuMode(redraw); break;
+    case HEAVY_TRANSITION_MODE: updateHeavyTransitionMode(redraw); break;
+	case SHIP_PLACE_MODE: updateShipPlaceMode(redraw); break;
+	case BS_GAME_MODE: updateBattleshipsMode(redraw); break;
     default: break;
 	}
 }
@@ -72,6 +74,8 @@ void loop() {
 	}
 
 	do {
+		bool redrawWasWanted = redrawWanted;
+		redrawWanted = false;
 		if(changedMode) {
 			frameCount = 0;
 			for(int i = 0; i < BUTTON_COUNT; i++)
@@ -80,8 +84,7 @@ void loop() {
 			changedMode = false;
 			callModeUpdateFunction(currMode, true);
 		} else
-			callModeUpdateFunction(currMode, redrawWanted);
-	    redrawWanted = false;
+			callModeUpdateFunction(currMode, redrawWasWanted);
 	} while(changedMode);
 
 	updateScreens();

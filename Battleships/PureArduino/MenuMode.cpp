@@ -66,12 +66,12 @@ void drawP2Human() {
 }
 
 #define IDLE_TIME_BEFORE_SPLASH 1000
-void updateMenuMode(bool first) {
+void updateMenuMode(bool redraw) {
 	static int menuChoicePos = 0;
 	static bool player2 = false;
 	static int animate_player2 = 0;
 
-	if(first) {
+	if(redraw) {
         fillScreen(PLAYER1+DEF, MENU_BG);
 		menuChoicePos = 0;
 		fillRect(PLAYER1 + DEF, 0, MENU_OPTIONS_Y_OFFSET, 1, MENU_CHOICE_COUNT, MENU_OPTION_BG);
@@ -111,11 +111,13 @@ void updateMenuMode(bool first) {
 	}
 
 	if(clicked(framesHeld.two()[BUTTON_A]) && !player2) {
+		playSoundEffect(SOUND_PLAYER_2_JOIN);
 		player2 = true;
 		animate_player2 = 20;
 	}
 
 	if(clicked(framesHeld.two()[BUTTON_MENU]) && player2) {
+		playSoundEffect(SOUND_PLAYER_2_LEAVE);
 		player2 = false;
 	    animate_player2 = 20;
 	}
@@ -157,7 +159,7 @@ void handleHoldEscToMenu() {
 	}
 
 	if(held >= HOLD_FRAMES) {
-		heavyTransitionTo(MENU_MODE, 20);
+		lightTransitionTo(MENU_MODE, 20);
 		playSoundEffect(SOUND_DONE);
 	}
 }

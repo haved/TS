@@ -4,7 +4,7 @@
 #define TRANSITION_TIME 100
 CRGB colors[] = {{255, 0, 0}, {0, 0, 255}, {100, 100, 200}, {255, 255, 0}, {0, 255, 255}, {0, 255, 0}};
 #define SCREEN_COLOR_COUNT (sizeof(colors)/sizeof(*colors))
-void updateSplashScreenMode(bool first) {
+void updateSplashScreenMode(bool redraw) {
 
 	if(clicked(buttons.one()[BUTTON_A]) || clicked(buttons.one()[BUTTON_B])
 	   || clicked(buttons.two()[BUTTON_A]) || clicked(buttons.two()[BUTTON_B])) {
@@ -13,7 +13,7 @@ void updateSplashScreenMode(bool first) {
 	}
 
 	static int currentScreen = 0;
-	if(first)
+	if(redraw)
 		currentScreen = -1;
 	else if(anyTransitionRunning())
 		return;
