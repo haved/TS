@@ -6,11 +6,11 @@ CRGB CRGB::Red = {255, 0, 0};
 CRGB CRGB::Green = {0, 255, 0};
 CRGB CRGB::Blue = {0, 0, 255};
 
-inline int min(int a, int b) {
+int min(int a, int b) {
 	return a<b?a:b;
 }
 
-inline int max(int a, int b) {
+int max(int a, int b) {
 	return a>b?a:b;
 }
 

@@ -4,7 +4,7 @@
 
 #define B21 Boat{2, 1, {100, 250, 120}}
 #define B31 Boat{3, 1, {250, 250, 120}}
-#define B41 Boat{4, 1, {20, 20, 20}}
+#define B41 Boat{4, 1, {200, 250, 250}}
 #define B22 Boat{2, 2, {250, 10, 100}}
 const Boat DEFAULT_BOATS[] = {B21, B21, B31, B41, B22};
 #define BOAT_COUNT (int)(sizeof(DEFAULT_BOATS)/sizeof(*DEFAULT_BOATS))
@@ -36,8 +36,9 @@ inline void drawWholeOcean(int screen) {
 			drawOceanTile(screen, x, y);
 }
 
-#define HOVER_BOAT_COLOR1 CRGB(255, 100, 100)
-#define HOVER_BOAT_COLOR2 CRGB(100, 200, 200)
+#define OVERLAP_BOAT_COLOR1 CRGB(255, 0, 0)
+#define OVERLAP_BOAT_COLOR2 CRGB(255, 255, 150)
+#define HOVER_BOAT_COLOR2 CRGB(200, 240, 100)
 bool handlePlayerBoatPlacement(int player_global) {
 	assert(player_global == PLAYER1 || player_global == PLAYER2);
 
@@ -47,12 +48,15 @@ bool handlePlayerBoatPlacement(int player_global) {
     for(int i = 0; i < placed; i++)
 		boats[p][i].render(player_global+DEF);
 
+	int* buttons = framesHeld.raw+(p*BTN_OFFSET_P2);
+	if(placed > 0 && clicked(buttons[BUTTON_MENU]))
+		placed--;
+
 	if(placed == BOAT_COUNT)
 		return true;
 
-	int* buttons = framesHeld.raw+(p*BTN_OFFSET_P2);
-	Boat& old = boats[p][placed];
-	Boat moving = old;
+	Boat& placing = boats[p][placed];
+	Boat moving = placing;
 
 	if(clicked(buttons[BUTTON_UP]))
 		moving.y--;
@@ -62,13 +66,30 @@ bool handlePlayerBoatPlacement(int player_global) {
 		moving.x+=LEFT(player_global);
 	if(clicked(buttons[BUTTON_RIGHT]))
 		moving.x+=RIGHT(player_global);
+	if(clicked(buttons[BUTTON_B]))
+		moving.rotate();
 
-	if(moving.equals(old));
+	if(moving.equals(placing));
 	else if(!moving.inBounds()); //TODO: Play sound
 	else
-		old = moving;
+		placing = moving;
 
-	boats[p][placed].render(player_global+DEF, interpolate(HOVER_BOAT_COLOR1, HOVER_BOAT_COLOR2, sin(frameCount/10.f)/2.f+.5f));
+	bool overlapping = false;
+	for(int i = 0; i < placed && !overlapping; i++)
+		overlapping |= placing.overrides(boats[p][i]);
+
+    CRGB col1 = overlapping ? OVERLAP_BOAT_COLOR1 : placing.color;
+	CRGB col2 = overlapping ? OVERLAP_BOAT_COLOR2 : HOVER_BOAT_COLOR2;
+
+	float flashSlow = overlapping ? 5.f : 7.f;
+
+	boats[p][placed].render(player_global+DEF, interpolate(col1, col2, sin(frameCount/flashSlow)/2.f+.5f));
+
+	if(clicked(buttons[BUTTON_A])) {
+		if(overlapping); //TODO Play error sound
+		else
+			placed++;
+	}
 
 	return false;
 }

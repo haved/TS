@@ -85,8 +85,8 @@ int getKeyIndex(int keyval) {
 	case GDK_KEY_BackSpace: return BUTTON_MENU;
 
 	case GDK_KEY_w: return BTN_OFFSET_P2 + BUTTON_UP;
-	case GDK_KEY_a: return BTN_OFFSET_P2 + BUTTON_DOWN;
-	case GDK_KEY_s: return BTN_OFFSET_P2 + BUTTON_LEFT;
+	case GDK_KEY_s: return BTN_OFFSET_P2 + BUTTON_DOWN;
+	case GDK_KEY_a: return BTN_OFFSET_P2 + BUTTON_LEFT;
 	case GDK_KEY_d: return BTN_OFFSET_P2 + BUTTON_RIGHT;
 	case GDK_KEY_e: return BTN_OFFSET_P2 + BUTTON_A;
 	case GDK_KEY_q: return BTN_OFFSET_P2 + BUTTON_B;

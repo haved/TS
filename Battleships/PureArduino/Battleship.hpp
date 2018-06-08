@@ -16,9 +16,14 @@ struct Boat {
 	}
 	inline void rotate() {
 		int oldWidth = width, oldHeight=height;
+		x+=(width-1)/2;
+		y+=height/2;
 		width = oldHeight;
 		height = oldWidth;
-		x = min(x, WIDTH-width);
+		x-=(width-1)/2;
+		y-=height/2;
+		x = min(max(x, 0), WIDTH-width);
+		y = min(max(y, 0), HEIGHT-height);
 	}
 	inline void render(int screen, CRGB color) {
 		for(int xx = x; xx < x+width; xx++)
@@ -30,5 +35,8 @@ struct Boat {
 	}
 	inline bool equals(const Boat& other) {
 		return x==other.x && y==other.y && width==other.width && height==other.height;
+	}
+	inline bool overrides(const Boat& other) {
+		return x+width > other.x && y+height>other.y && x<other.x+other.width && y<other.y+other.height;
 	}
 };
