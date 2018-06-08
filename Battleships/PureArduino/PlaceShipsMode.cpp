@@ -56,7 +56,8 @@ bool handlePlayerBoatPlacement(int player_global) {
 		moving.rotate();
 
 	if(moving.equals(placing));
-	else if(!moving.inBounds()); //TODO: Play error sound
+	else if(!moving.inBounds())
+		playSoundEffect(SOUND_ILLEGAL_MOVE);
 	else
 		placing = moving; //TODO Play move sound
 
@@ -72,9 +73,13 @@ bool handlePlayerBoatPlacement(int player_global) {
 	boats[p][placed].render(player_global+DEF, interpolate(col1, col2, sin(frameCount/flashSlow)/2.f+.5f));
 
 	if(clicked(buttons[BUTTON_A])) {
-		if(overlapping); //TODO Play error sound
-		else
-			placed++; //TODO Play placed sound
+		if(overlapping) {
+			playSoundEffect(SOUND_ILLEGAL_ACTION);
+		}
+		else {
+			placed++;
+			playSoundEffect(SOUND_ACTION);
+		}
 	}
 
 	return false;
@@ -93,8 +98,12 @@ void updateShipPlaceMode(bool first) {
 
 	if(done) {
 		configureBattleshipsMode(boats[0], BOAT_COUNT, boats[1], BOAT_COUNT);
-		heavyTransitionTo(BS_GAME_MODE, 100); //TODO Play OK sound
+		heavyTransitionTo(BS_GAME_MODE, 100);
+		playSoundEffect(SOUND_DONE);
 	}
-   	if(framesHeld.one()[BUTTON_MENU] + framesHeld.two()[BUTTON_MENU] > 100)
-		heavyTransitionTo(MENU_MODE, 20); //TODO Play back to menu sound
+   	if(framesHeld.one()[BUTTON_MENU] + framesHeld.two()[BUTTON_MENU] > 100) {
+		heavyTransitionTo(MENU_MODE, 20);
+		playSoundEffect(SOUND_DONE);
+	}
+
 }

@@ -1,4 +1,5 @@
 SOUND(MOVE_ACTION, "action.wav"),
 SOUND(ILLEGAL_MOVE, "illegalMove.wav"),
+#define SOUND_ILLEGAL_ACTION SOUND_ILLEGAL_MOVE
 SOUND(ACTION, "action.wav"),
 SOUND(DONE, "done.wav")

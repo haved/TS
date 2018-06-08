@@ -88,15 +88,20 @@ void updateMenuMode(bool first) {
 	if(clicked(framesHeld.one()[BUTTON_UP]))
 		menuChoicePos--;
 	if(menuChoicePos == prevChoice);
-	else if(menuChoicePos < 0 || menuChoicePos >= MENU_CHOICE_COUNT)
+	else if(menuChoicePos < 0 || menuChoicePos >= MENU_CHOICE_COUNT) {
+		playSoundEffect(SOUND_ILLEGAL_MOVE);
 		menuChoicePos = prevChoice;
-	else
+	}
+	else {
+		//playSoundEffect(SOUND_MOVE_ACTION);
 		setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + prevChoice, MENU_OPTION_BG);
+	}
 
 	CRGB color = interpolate(MENU_OPTION_COLOR_1, MENU_OPTION_COLOR_2, (sin(frameCount/5.)+1)/2);
 	setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + menuChoicePos, color);
 
 	if(clicked(framesHeld.one()[BUTTON_A])) {
+		playSoundEffect(SOUND_DONE);
 		switch(menuChoicePos) {
 		case 0:
 			configureShipPlaceMode(player2);
