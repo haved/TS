@@ -7,8 +7,10 @@ CRGB colors[] = {{255, 0, 0}, {0, 0, 255}, {100, 100, 200}, {255, 255, 0}, {0, 2
 void updateSplashScreenMode(bool first) {
 
 	if(clicked(buttons.one()[BUTTON_A]) || clicked(buttons.one()[BUTTON_B])
-	   || clicked(buttons.two()[BUTTON_A]) || clicked(buttons.two()[BUTTON_B]))
+	   || clicked(buttons.two()[BUTTON_A]) || clicked(buttons.two()[BUTTON_B])) {
+		playSoundEffect(SOUND_ACTION);
 		heavyTransitionTo(MENU_MODE, 15);
+	}
 
 	static int currentScreen = 0;
 	if(first)

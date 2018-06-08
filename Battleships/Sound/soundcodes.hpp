@@ -5,9 +5,11 @@ enum SoundCode {
 #include "soundPaths.txt"
 				,SOUND_COUNT
 };
+#undef SOUND
 
 #define MUSIC(name, path) MUSIC_##name
 enum MusicCode {
 #include "musicPaths.txt"
 				,MUSIC_COUNT
 };
+#undef MUSIC

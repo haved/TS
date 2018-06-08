@@ -1,6 +1,6 @@
 CXX=g++
 CFLAGS_GAME=-std=c++14 -g
-CFLAGS_SIM=`pkg-config --cflags gtk+-3.0` -std=c++14 -g
+CFLAGS_SIM=`pkg-config --cflags gtk+-3.0 SDL2_mixer` -std=c++14 -g
 DEPS = ../PureArduino/ArduinoInterface.hpp
 
 #build_sim is where the simulation files are put
@@ -14,7 +14,7 @@ GameBuildFiles := $(patsubst ../PureArduino/%.cpp, build_game/%.o, $(GameSourceF
 
 
 all: $(SimBuildFiles) $(GameBuildFiles)
-	$(CXX) $^ -o ArduinoSim `pkg-config --libs gtk+-3.0`
+	$(CXX) $^ -o ArduinoSim `pkg-config --libs gtk+-3.0 SDL2_mixer`
 
 build_sim:
 	mkdir build_sim

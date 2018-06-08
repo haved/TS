@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "../PureArduino/ArduinoInterface.hpp"
+#include "../Sound/SoundSystem.hpp"
 
 //Screen 0 is P1_ATK
 //Screen 1 is P1_DEF
@@ -170,6 +171,10 @@ int main(int argc, char** argv) {
 	gtk_window_set_title(GTK_WINDOW(window), "PureArduinoSim");
 	gtk_widget_show_all(window);
 
+	startAudioSystem("../Sound/");
+
 	gtk_main();
+
+	stopAudioSystem();
 	return 0;
 }

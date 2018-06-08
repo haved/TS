@@ -51,14 +51,7 @@ void updateScreens();
 bool anyTransitionRunning();
 void getButtonStates(ButtonState<bool>& state);
 
-void playSoundEffect(int soundCode);
-void pauseSoundEffects();
-void resumeSoundEffects();
-void stopSoundEffects();
-void loopMusic(int musicCode);
-void pauseMusic();
-void resumeMusic();
-void fadeOutMusic(int millis);
+#include "../Sound/SoundInterface.hpp"
 
 inline CRGB interpolate(CRGB from, CRGB to, float frac) {
 	float t = frac;
