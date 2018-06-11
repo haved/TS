@@ -53,18 +53,30 @@ void getButtonStates(ButtonState<bool>& state);
 CRGB getWrittenColor(int screen, int x, int y);
 CRGB getCurrentColor(int screen, int x, int y);
 
+#ifdef __AVR__
+#define playSoundEffect(SoundCode)
+#define pauseSoundEffects
+#define resumeSoundEffects
+#define stopSoundEffects
+#define loopMusic(MusicCode)
+#define pauseMusic
+#define resumeMusic
+#define fadeOutMusic(int)
+#else
 #include "../Sound/SoundInterface.hpp"
+#endif
 
-#define up(c) ((c)*(c))
-#define down(c) sqrt(c)
+#define up(c) (c)/*((c)*(c))*/
+#define down(c) (c)/*sqrt(c)*/
 inline CRGB interpolate(CRGB from, CRGB to, float frac) {
 	float t = frac;
 	float f = 1-t;
-#define intr(ch) (uint8_t)down(up(from.ch)*f+up(to.ch)*t)
+#define intr(ch) (int)down(up(from.ch)*f+up(to.ch)*t)
 	return CRGB{intr(r), intr(g), intr(b)};
+
 }
 
 inline CRGB inverse(CRGB color) {
-#define flipped(x) (uint8_t)(down(1-up(x/255.f))*255)
+#define flipped(x) (int)(down(1-up(x/255.f))*255)
 	return CRGB(flipped(color.r), flipped(color.g), flipped(color.b));
 }
