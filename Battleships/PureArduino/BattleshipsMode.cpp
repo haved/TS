@@ -14,7 +14,8 @@ int p2Attacks[WIDTH][HEIGHT] = {};
 int x, y;
 bool player2;
 
-int hitCountdown = 0;
+int hitCountdown;
+int truceTime;
 
 bool done;
 bool player2Winner;
@@ -28,6 +29,7 @@ void switchPlayer() {
 	player2^=true;
 	x = WIDTH/2;
 	y = HEIGHT/2;
+	truceTime = 0;
 }
 
 void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount, bool p2AI) {
@@ -39,6 +41,7 @@ void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int
 	p2BoatsLeft = p2BoatCount;
 	::p2AI = p2AI;
 
+	truceTime = 0;
 	hitCountdown = 0;
 	done = false;
 	player2 = true;
@@ -51,31 +54,28 @@ void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int
 
 CRGB getColorOfATK(int hitStatus) {
 	switch(hitStatus) {
-	case MISS: return CRGB(255, 255, 255);
-	case HIT: return CRGB(0, 0, 0);
+	case MISS: return CRGB(0, 0, 0);
+	case HIT: return CRGB(255, 255, 255);
 	case SUNK: return CRGB(255, 0, 0);
 	default: return CRGB(0,0,0);
 	}
 }
 
 CRGB getColorOfDEF(int hitStatus) {
-	switch(hitStatus) {
-	case MISS: return CRGB(255, 255, 255);
-	case HIT: return CRGB(0, 0, 0);
-	case SUNK: return CRGB(255, 0, 0);
-	default: return CRGB(0,0,0);
-	}
+    return getColorOfATK(hitStatus);
 }
 
 #define screenForAtk ((player2?PLAYER2:PLAYER1) + ATK)
 #define screenForDef ((player2?PLAYER1:PLAYER2) + DEF)
 #define MARKER_SET_COLOR CRGB(0, 255, 0)
+#define SHOOT_TIME 30
 #define FLASH_DURATION 50
 bool handlePlayerTurn() {
 	bool changed = false;
 
 	if(hitCountdown > 0) {
 		hitCountdown--;
+
 		if(hitCountdown == 0) {
 		    playSoundEffect(SOUND_EXPLOTION);
 			fillScreen(screenForAtk, CRGB::White);
@@ -109,9 +109,10 @@ bool handlePlayerTurn() {
 
 			return true;
 		}
-	    return false;
+	    return true;
 	}
 
+	truceTime++;
     int* buttons = framesHeld.raw+(player2*BTN_OFFSET_P2);
 
 	int oldX = x, oldY = y;
@@ -132,9 +133,9 @@ bool handlePlayerTurn() {
 	} else
 		changed = true;
 
-	bool shoot = clicked(buttons[BUTTON_A]) || (player2 && p2AI);
+	bool shoot = clicked(buttons[BUTTON_A]) || (player2 && p2AI && truceTime > 100);
 	if(shoot && !anyTransitionRunning()) {
-		hitCountdown = 30;
+		hitCountdown = SHOOT_TIME;
 		playSoundEffect(SOUND_FIRE_GUN);
 		setTile(screenForAtk, x, y, MARKER_SET_COLOR);
 		setTile(screenForDef, x, y, MARKER_SET_COLOR);
@@ -170,6 +171,37 @@ void updateBattleshipsMode(bool redraw) {
 		}
 		underAtkMarkerColor = getWrittenColor(screenForAtk, x, y);
 		underDefMarkerColor = getWrittenColor(screenForDef, x, y);
+
+		if(hitCountdown > 0) {
+
+			setTile(screenForAtk, x, y, MARKER_SET_COLOR);
+			setTile(screenForDef, x, y, MARKER_SET_COLOR);
+
+			auto drawBullet = [&](int x, int y, CRGB color) {
+								  if(y < 0)
+									  return;
+								  int defPlayer = (player2 ? PLAYER1 : PLAYER2);
+								  int atkPlayer = (player2 ? PLAYER2 : PLAYER1);
+								  if(y >= HEIGHT) {
+									  y -= HEIGHT;
+									  setTile(defPlayer+DEF, x, y, color);
+									  setTile(atkPlayer+ATK, x, y, color);
+								  } else {
+									  y = HEIGHT-1-y;
+									  setTile(defPlayer+ATK, x, y, color);
+								  }
+							  };
+
+			static const CRGB bulletColor(255, 0, 0);
+			static const CRGB bulletTrail(255, 255, 0);
+
+			int shootDist = HEIGHT+y;
+			float progress = (SHOOT_TIME-hitCountdown-10)/(float)(SHOOT_TIME-10);
+			int bulletPixel = progress*shootDist;
+
+			drawBullet(x, bulletPixel, bulletColor);
+			drawBullet(x, bulletPixel-1, bulletTrail);
+		}
 	}
 
 	if(done) {
