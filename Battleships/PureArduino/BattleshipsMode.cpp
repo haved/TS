@@ -4,6 +4,8 @@
 
 Boat *p1Boats, *p2Boats;
 int p1BoatCount, p2BoatCount;
+int p1BoatsLeft, p2BoatsLeft;
+bool p2AI;
 
 //p1Attacks means where p1 has attacked
 int p1Attacks[WIDTH][HEIGHT] = {};
@@ -11,8 +13,11 @@ int p2Attacks[WIDTH][HEIGHT] = {};
 
 int x, y;
 bool player2;
+
+int hitCountdown = 0;
+
 bool done;
-int winner;
+bool player2Winner;
 
 #define UNCHARTED 0
 #define MISS 1
@@ -25,12 +30,16 @@ void switchPlayer() {
 	y = HEIGHT/2;
 }
 
-void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount) {
+void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount, bool p2AI) {
 	::p1Boats = p1Boats;
 	::p1BoatCount = p1BoatCount;
+	p1BoatsLeft = p1BoatCount;
 	::p2Boats = p2Boats;
 	::p2BoatCount = p2BoatCount;
+	p2BoatsLeft = p2BoatCount;
+	::p2AI = p2AI;
 
+	hitCountdown = 0;
 	done = false;
 	player2 = true;
 	switchPlayer();
@@ -58,8 +67,51 @@ CRGB getColorOfDEF(int hitStatus) {
 	}
 }
 
-#define MARKER_COLOR_1 CRGB(255, 0, 0)
+#define screenForAtk ((player2?PLAYER2:PLAYER1) + ATK)
+#define screenForDef ((player2?PLAYER1:PLAYER2) + DEF)
+#define MARKER_SET_COLOR CRGB(0, 255, 0)
+#define FLASH_DURATION 50
 bool handlePlayerTurn() {
+	bool changed = false;
+
+	if(hitCountdown > 0) {
+		hitCountdown--;
+		if(hitCountdown == 0) {
+		    playSoundEffect(SOUND_EXPLOTION);
+			fillScreen(screenForAtk, CRGB::White);
+			fillScreen(screenForDef, CRGB::White);
+			startTransition(screenForAtk, FLASH_DURATION);
+			startTransition(screenForDef, FLASH_DURATION);
+
+			auto& defBoats = player2 ? p1Boats   : p2Boats;
+			int defBoatsCount = player2 ? p1BoatCount : p2BoatCount;
+			int& boatsLeft = player2 ? p2BoatsLeft : p1BoatsLeft;
+			auto& atkField = player2 ? p2Attacks : p1Attacks;
+
+			atkField[x][y] = MISS;
+		    for(int boat = 0; boat < defBoatsCount; boat++) {
+				Boat& b = defBoats[boat];
+				if(b.sunk)
+					continue;
+				if(b.hit(x, y)) {
+					atkField[x][y] = HIT;
+					if(b.maybeSink(atkField)) {
+						b.colorSink(atkField, SUNK);
+						if(--boatsLeft == 0) {
+							done = true;
+							player2Winner = !player2; //If all player2s boats are sunk
+						}
+					}
+				}
+			}
+
+			switchPlayer();
+
+			return true;
+		}
+	    return false;
+	}
+
     int* buttons = framesHeld.raw+(player2*BTN_OFFSET_P2);
 
 	int oldX = x, oldY = y;
@@ -78,14 +130,23 @@ bool handlePlayerTurn() {
 		x = oldX;
 		y = oldY;
 	} else
-		return true; //We must repaint
+		changed = true;
 
-	return false;
+	bool shoot = clicked(buttons[BUTTON_A]) || (player2 && p2AI);
+	if(shoot && !anyTransitionRunning()) {
+		hitCountdown = 30;
+		playSoundEffect(SOUND_FIRE_GUN);
+		setTile(screenForAtk, x, y, MARKER_SET_COLOR);
+		setTile(screenForDef, x, y, MARKER_SET_COLOR);
+		return false;
+	}
+
+	return changed;
 }
 
-#define screenForAtk ((player2?PLAYER2:PLAYER1) + ATK)
 void updateBattleshipsMode(bool redraw) {
-	static CRGB underMarkerColor;
+	static CRGB underAtkMarkerColor;
+	static CRGB underDefMarkerColor;
 	if(redraw | (!done && handlePlayerTurn())) {
 		allScreens(drawWholeOcean(screen, 0));
 		for(int i = 0; i < p1BoatCount; i++)
@@ -107,14 +168,15 @@ void updateBattleshipsMode(bool redraw) {
 				}
 			}
 		}
-
-		underMarkerColor = getWrittenColor(screenForAtk, x, y);
+		underAtkMarkerColor = getWrittenColor(screenForAtk, x, y);
+		underDefMarkerColor = getWrittenColor(screenForDef, x, y);
 	}
 
 	if(done) {
 		//TODO: Flash P1/P2 winner until button press
-	} else {
-		setTile(screenForAtk, x, y, interpolate(MARKER_COLOR_1, underMarkerColor, sin(frameCount/10.f)/2+.5f));
+	} else if(!hitCountdown) {
+		setTile(screenForAtk, x, y, interpolate(inverse(underAtkMarkerColor), underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
+		setTile(screenForDef, x, y, interpolate(inverse(underDefMarkerColor), underDefMarkerColor, sin(frameCount/10.f)/2+.5f));
 	}
 
 	//TODO: Pause menu

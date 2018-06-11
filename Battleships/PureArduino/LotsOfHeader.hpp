@@ -10,7 +10,7 @@ void handleHoldEscToMenu();
 void configureShipPlaceMode(bool twoPlayer_p);
 
 //BattleshipsMode.cpp
-void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount);
+void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount, bool p2AI);
 
 //OceanDrawer.cpp
 void drawOceanTile(int screen, int x, int y, int frame);

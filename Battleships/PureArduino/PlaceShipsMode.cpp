@@ -97,7 +97,7 @@ void updateShipPlaceMode(bool redraw) {
 	done &= handlePlayerBoatPlacement(PLAYER1);
 
 	if(done) {
-		configureBattleshipsMode(boats[0], BOAT_COUNT, boats[1], BOAT_COUNT);
+		configureBattleshipsMode(boats[0], BOAT_COUNT, boats[1], BOAT_COUNT, !twoPlayer);
 		heavyTransitionTo(BS_GAME_MODE, 40);
 		playSoundEffect(SOUND_DONE);
 	}

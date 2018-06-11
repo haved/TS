@@ -7,9 +7,10 @@ struct Boat {
 	int x;
 	int y;
 	CRGB color;
+	bool sunk;
 
 	Boat() {}
-	Boat(int width, int height, CRGB color) : width(width), height(height), x((WIDTH-width)/2), y((HEIGHT-height)/2), color(color) {}
+	Boat(int width, int height, CRGB color) : width(width), height(height), x((WIDTH-width)/2), y((HEIGHT-height)/2), color(color), sunk(false) {}
 
 	inline bool inBounds() {
 		return x>=0 && y>=0 && x+width<=WIDTH && y+height<=HEIGHT;
@@ -38,5 +39,21 @@ struct Boat {
 	}
 	inline bool overrides(const Boat& other) {
 		return x+width > other.x && y+height>other.y && x<other.x+other.width && y<other.y+other.height;
+	}
+	inline bool hit(int _x, int _y) {
+		return _x >= x && _x < x+width && _y >= y && _y < y+height;
+	}
+	inline bool maybeSink(int (&hits)[WIDTH][HEIGHT]) {
+	    for(int _x = x; _x < x+width; _x++)
+			for(int _y = y; _y < y+height; _y++)
+				if(!hits[_x][_y]) //We assume anything non 0 means shot
+					return false;
+		sunk = true;
+		return true;
+	}
+	inline void colorSink(int (&hits)[WIDTH][HEIGHT], int color) {
+		for(int _x = x; _x < x+width; _x++)
+			for(int _y = y; _y < y+height; _y++)
+			    hits[_x][_y] = color;
 	}
 };

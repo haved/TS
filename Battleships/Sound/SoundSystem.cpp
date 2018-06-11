@@ -16,7 +16,7 @@ void startAudioSystem(const char* pathPrefix) {
 	if(SDL_Init(SDL_INIT_AUDIO) != 0)
 		ERROR("Failed to init SDL for audio: " << SDL_GetError());
 	if(Mix_OpenAudio(44100, AUDIO_S32LSB, 2, 1024) == -1)
-		ERROR("Failed to Mix_OpenAudio" << Mix_GetError());
+		ERROR("Failed to Mix_OpenAudio" << "SDL_GetError(): " << SDL_GetError() << " Mix_GetError(): "<< Mix_GetError());
 
 	for(int wave = 0; wave < SOUND_COUNT; wave++) {
 		sprintf(TMP_PATH_CONCAT, "%seffects/%s", pathPrefix, SOUND_PATHS[wave]);

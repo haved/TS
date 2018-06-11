@@ -55,11 +55,16 @@ CRGB getCurrentColor(int screen, int x, int y);
 
 #include "../Sound/SoundInterface.hpp"
 
+#define up(c) ((c)*(c))
+#define down(c) sqrt(c)
 inline CRGB interpolate(CRGB from, CRGB to, float frac) {
 	float t = frac;
 	float f = 1-t;
-#define up(c) ((c)*(c))
-#define down(c) sqrt(c)
 #define intr(ch) (uint8_t)down(up(from.ch)*f+up(to.ch)*t)
 	return CRGB{intr(r), intr(g), intr(b)};
+}
+
+inline CRGB inverse(CRGB color) {
+#define flipped(x) (uint8_t)(down(1-up(x/255.f))*255)
+	return CRGB(flipped(color.r), flipped(color.g), flipped(color.b));
 }
