@@ -71,7 +71,7 @@ CRGB getCurrentColor(int screen, int x, int y);
 inline CRGB interpolate(CRGB from, CRGB to, float frac) {
 	float t = frac;
 	float f = 1-t;
-#define intr(ch) (int)down(up(from.ch)*f+up(to.ch)*t)
+#define intr(ch) (uint8_t)down(up(from.ch)*f+up(to.ch)*t)
 	return CRGB{intr(r), intr(g), intr(b)};
 
 }

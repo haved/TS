@@ -2,18 +2,18 @@
 #include "ArduinoInterface.hpp"
 #include "LotsOfHeader.hpp"
 
-#define MENU_BG CRGB(230, 200, 220)
-#define MENU_OPTION_BG CRGB(80, 200, 80)
+#define MENU_BG CRGB(40, 60, 60)
+#define MENU_OPTION_BG CRGB(80, 255, 80)
 #define MENU_OPTION_COLOR_1 CRGB(255, 0, 0)
-#define MENU_OPTION_COLOR_2 CRGB(255, 255, 90)
+#define MENU_OPTION_COLOR_2 CRGB(255, 90, 255)
 
 #define MENU_OPTIONS_Y_OFFSET 1
 #define MENU_CHOICE_COUNT 6
 
-#define P1_SHIRT_COLOR CRGB(190,52,81)
-#define P1_EYE_COLOR CRGB(33, 72, 196)
+#define P1_SHIRT_COLOR CRGB(250,70,100)
+#define P1_EYE_COLOR CRGB(0, 0, 255)
 #define P2_SHIRT_COLOR CRGB(126,150,225)
-#define P2_EYE_COLOR CRGB(52, 162, 53)
+#define P2_EYE_COLOR CRGB(0, 255, 0)
 
 void drawPerson(int screen, int x, int y, CRGB eyeColor, CRGB shirtColor) {
     fillRect(screen, x, y, 3, 4, shirtColor); //Body

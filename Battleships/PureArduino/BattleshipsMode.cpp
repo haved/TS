@@ -55,7 +55,7 @@ void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int
 CRGB getColorOfATK(int hitStatus) {
 	switch(hitStatus) {
 	case MISS: return CRGB(0, 0, 0);
-	case HIT: return CRGB(255, 255, 255);
+	case HIT: return CRGB(0, 255, 0);
 	case SUNK: return CRGB(255, 0, 0);
 	default: return CRGB(0,0,0);
 	}
@@ -68,25 +68,26 @@ CRGB getColorOfDEF(int hitStatus) {
 #define screenForAtk ((player2?PLAYER2:PLAYER1) + ATK)
 #define screenForDef ((player2?PLAYER1:PLAYER2) + DEF)
 #define MARKER_SET_COLOR CRGB(0, 255, 0)
+#define FLASH_COLOR CRGB(100, 100, 100)
 #define SHOOT_TIME 30
 #define FLASH_DURATION 50
 bool handlePlayerTurn() {
 	bool changed = false;
+
+	auto& defBoats = player2 ? p1Boats   : p2Boats;
+	int defBoatsCount = player2 ? p1BoatCount : p2BoatCount;
+	int& boatsLeft = player2 ? p2BoatsLeft : p1BoatsLeft;
+	auto& atkField = player2 ? p2Attacks : p1Attacks;
 
 	if(hitCountdown > 0) {
 		hitCountdown--;
 
 		if(hitCountdown == 0) {
 		    playSoundEffect(SOUND_EXPLOTION);
-			fillScreen(screenForAtk, CRGB::White);
-			fillScreen(screenForDef, CRGB::White);
+			fillScreen(screenForAtk, FLASH_COLOR);
+			fillScreen(screenForDef, FLASH_COLOR);
 			startTransition(screenForAtk, FLASH_DURATION);
 			startTransition(screenForDef, FLASH_DURATION);
-
-			auto& defBoats = player2 ? p1Boats   : p2Boats;
-			int defBoatsCount = player2 ? p1BoatCount : p2BoatCount;
-			int& boatsLeft = player2 ? p2BoatsLeft : p1BoatsLeft;
-			auto& atkField = player2 ? p2Attacks : p1Attacks;
 
 			atkField[x][y] = MISS;
 		    for(int boat = 0; boat < defBoatsCount; boat++) {
@@ -135,11 +136,14 @@ bool handlePlayerTurn() {
 
 	bool shoot = clicked(buttons[BUTTON_A]) || (player2 && p2AI && truceTime > 100);
 	if(shoot && !anyTransitionRunning()) {
-		hitCountdown = SHOOT_TIME;
-		playSoundEffect(SOUND_FIRE_GUN);
-		setTile(screenForAtk, x, y, MARKER_SET_COLOR);
-		setTile(screenForDef, x, y, MARKER_SET_COLOR);
-		return false;
+		if(atkField[x][y] != UNCHARTED) {
+		    playSoundEffect(SOUND_ILLEGAL_MOVE);
+		} else {
+			hitCountdown = SHOOT_TIME;
+			playSoundEffect(SOUND_FIRE_GUN);
+			setTile(screenForAtk, x, y, MARKER_SET_COLOR);
+			setTile(screenForDef, x, y, MARKER_SET_COLOR);
+	    }
 	}
 
 	return changed;

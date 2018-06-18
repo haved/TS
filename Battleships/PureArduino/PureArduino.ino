@@ -109,6 +109,7 @@ void updateScreens() {
     }
   }
   FastLED.show();
+  Serial.println("Update");
 }
 
 bool anyTransitionRunning() {

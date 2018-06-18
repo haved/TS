@@ -1,8 +1,8 @@
 #include "GameLogic.hpp"
 #include "ArduinoInterface.hpp"
 
-#define OCEAN_BG CRGB(50, 50, 180)
-#define OCEAN_BG2 CRGB(90, 100, 220)
+#define OCEAN_BG CRGB(30, 30, 130)
+#define OCEAN_BG2 CRGB(60, 70, 170)
 
 void drawOceanTile(int screen, int x, int y, int frame) {
 	float brightSpotA = fmod(5+frame/(float)10, WIDTH)+WIDTH/2;
