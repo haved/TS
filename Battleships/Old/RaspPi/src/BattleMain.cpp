@@ -53,7 +53,7 @@ void gameLoop() {
 
 			auto now = std::chrono::steady_clock::now();
 			std::this_thread::sleep_for(sleepTime-(now-lastFrame));
-			lastFrame = now;
+n			lastFrame = now;
 
 			countFPS();
 		}

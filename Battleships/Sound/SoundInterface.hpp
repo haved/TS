@@ -9,4 +9,4 @@ void stopSoundEffects();
 void loopMusic(MusicCode musicCode);
 void pauseMusic();
 void resumeMusic();
-void fadeOutMusic(int millis);
+void fadeOutMusic(char millis);

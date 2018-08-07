@@ -49,7 +49,7 @@ void playSoundEffect(SoundCode soundCode) {
 		ERROR("Mix_PlayChannel failed: '" << SOUND_PATHS[soundCode] << "': " << Mix_GetError());
 }
 
-void pauseSoundsEffects() {
+void pauseSoundEffects() {
 	Mix_Pause(-1); //All
 }
 

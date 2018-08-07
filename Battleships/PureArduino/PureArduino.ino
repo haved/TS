@@ -138,3 +138,29 @@ void assert(bool b) {
     delay(10);
   }
 }
+
+void playSoundEffect(SoundCode soundCode) {
+  Serial.print(">s"); Serial.write(soundCode);
+}
+void pauseSoundEffects() {
+  Serial.print(">p");
+}
+void resumeSoundEffects() {
+  Serial.print(">r");
+}
+void stopSoundEffects() {
+  Serial.print(">S");
+}
+
+void loopMusic(MusicCode musicCode) {
+  Serial.print(">M"); Serial.write(musicCode);
+}
+void pauseMusic() {
+  Serial.print(">P");
+}
+void resumeMusic() {
+  Serial.print(">R");
+}
+void fadeOutMusic(char millis) {
+  Serial.print(">F"); Serial.write(millis);
+}

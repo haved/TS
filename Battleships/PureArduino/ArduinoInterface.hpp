@@ -53,18 +53,7 @@ void getButtonStates(ButtonState<bool>& state);
 CRGB getWrittenColor(int screen, int x, int y);
 CRGB getCurrentColor(int screen, int x, int y);
 
-#ifdef __AVR__
-#define playSoundEffect(SoundCode)
-#define pauseSoundEffects
-#define resumeSoundEffects
-#define stopSoundEffects
-#define loopMusic(MusicCode)
-#define pauseMusic
-#define resumeMusic
-#define fadeOutMusic(int)
-#else
-#include "../Sound/SoundInterface.hpp"
-#endif
+#include "sound/SoundInterface.hpp"
 
 #define up(c) (c)/*((c)*(c))*/
 #define down(c) (c)/*sqrt(c)*/
