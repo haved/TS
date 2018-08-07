@@ -159,6 +159,7 @@ void handleHoldEscToMenu() {
 	}
 
 	if(held >= HOLD_FRAMES) {
+		fadeOutMusic(100);
 		lightTransitionTo(MENU_MODE, 20);
 		playSoundEffect(SOUND_DONE);
 	}

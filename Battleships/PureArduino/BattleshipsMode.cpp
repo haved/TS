@@ -50,6 +50,8 @@ void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int
 	for(int x = 0; x < WIDTH; x++)
 		for(int y = 0; y < HEIGHT; y++)
 			p1Attacks[x][y] = p2Attacks[x][y] = UNCHARTED;
+
+	loopMusic(MUSIC_PIRATE_MUSIC);
 }
 
 CRGB getColorOfATK(int hitStatus) {

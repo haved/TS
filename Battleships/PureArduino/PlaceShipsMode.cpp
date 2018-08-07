@@ -36,8 +36,10 @@ bool handlePlayerBoatPlacement(int player_global, bool* redraw, bool* overlappin
 	int& placed = boatsPlaced[p];
 
 	int* buttons = framesHeld.raw+(p*BTN_OFFSET_P2);
-	if(placed > 0 && clicked(buttons[BUTTON_MENU]))
+	if(placed > 0 && clicked(buttons[BUTTON_MENU])) {
 		placed--; //TODO: Play revert sound
+		*redraw = true;
+	}
 
 	if(placed == BOAT_COUNT)
 		return true;

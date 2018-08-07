@@ -28,7 +28,7 @@ void startAudioSystem(const char* pathPrefix) {
 
 	for(int muse = 0; muse < MUSIC_COUNT; muse++) {
 		sprintf(TMP_PATH_CONCAT, "%smusic/%s", pathPrefix, MUSIC_PATHS[muse]);
-		music[muse] = Mix_LoadMUS(MUSIC_PATHS[muse]);
+		music[muse] = Mix_LoadMUS(TMP_PATH_CONCAT);
 		if(!music[muse])
 			ERROR("Failed loading music: '" << TMP_PATH_CONCAT << "': " << Mix_GetError());
 	}
@@ -79,7 +79,7 @@ void resumeMusic() {
 	Mix_ResumeMusic();
 }
 
-void fadeOutMusic(int millis) {
-	Mix_FadeOutMusic(millis);
+void fadeOutMusic(char millis) {
+	Mix_FadeOutMusic(((int)(unsigned char)millis)*10);
 	currentMusicCode = MUSIC_COUNT;
 }
