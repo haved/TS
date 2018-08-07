@@ -14,8 +14,8 @@ int p2Attacks[WIDTH][HEIGHT] = {};
 int x, y;
 bool player2;
 
-int hitCountdown;
-int truceTime;
+float hitCountdown;
+float truceTime;
 
 bool done;
 bool player2Winner;
@@ -82,9 +82,10 @@ bool handlePlayerTurn() {
 	auto& atkField = player2 ? p2Attacks : p1Attacks;
 
 	if(hitCountdown > 0) {
-		hitCountdown--;
+		hitCountdown-=delta_time();
 
-		if(hitCountdown == 0) {
+		if(hitCountdown <= 0) {
+			hitCountdown = 0;
 		    playSoundEffect(SOUND_EXPLOTION);
 			fillScreen(screenForAtk, FLASH_COLOR);
 			fillScreen(screenForDef, FLASH_COLOR);
@@ -115,7 +116,7 @@ bool handlePlayerTurn() {
 	    return true;
 	}
 
-	truceTime++;
+	truceTime+=delta_time();
     int* buttons = framesHeld.raw+(player2*BTN_OFFSET_P2);
 
 	int oldX = x, oldY = y;

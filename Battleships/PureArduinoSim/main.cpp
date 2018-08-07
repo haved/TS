@@ -21,6 +21,10 @@ int transGoingMask = 0;
 inline int max(int a, int b) { return a>b?a:b; }
 inline int min(int a, int b) { return a<b?a:b; }
 
+float delta_time() {
+	return 1;
+}
+
 //All internal screen coords have 0 in top left corner seen from P1
 //The GameLogic thinks 0,0 is to the left of player1 and right of player2
 //0,0 is closest to the gap between ATK and DEF

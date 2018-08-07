@@ -7,6 +7,8 @@
 
 #define BUTTON_PIN_MIN 30
 
+#define ARDUINO_FRAME_DIVISOR 3
+
 CRGB leds[SCREEN_COUNT][LED_COUNT];
 CRGB colorFrom[SCREEN_COUNT][LED_COUNT];
 CRGB colorTo[SCREEN_COUNT][LED_COUNT];
@@ -30,6 +32,10 @@ void setup() {
 
   for (int i = 0; i < BUTTON_COUNT; i++)
     pinMode(BUTTON_PIN_MIN + i, INPUT);
+}
+
+float delta_time() {
+  return 2;
 }
 
 void fill(CRGB* leds, int count, CRGB value) {
@@ -87,6 +93,7 @@ void fillScreen(int screen, CRGB color) {
 }
 
 void startTransition(int screen, int frames) {
+  frames /= ARDUINO_FRAME_DIVISOR;
   if (frames <= 0)
     frames = 1;
   transProg[screen] = 0;

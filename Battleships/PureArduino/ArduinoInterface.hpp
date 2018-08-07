@@ -31,6 +31,8 @@ void assert(bool val);
 #define BUTTON_B 5
 #define BUTTON_MENU 6
 
+float delta_time();
+
 template<class T>
 struct ButtonState {
 	T raw[BUTTON_COUNT];
