@@ -80,6 +80,8 @@ void resumeMusic() {
 }
 
 void fadeOutMusic(char millis) {
+	if(currentMusicCode >= MUSIC_COUNT)
+		return;
 	Mix_FadeOutMusic(((int)(unsigned char)millis)*10);
 	currentMusicCode = MUSIC_COUNT;
 }

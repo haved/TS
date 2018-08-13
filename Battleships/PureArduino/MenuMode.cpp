@@ -65,17 +65,29 @@ void drawP2Human() {
 	drawPerson(PLAYER2+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 }
 
+
+#define BATTLESHIPS_CHOICE 0
+const char* get_game_name(int code) {
+	switch(code) {
+	case BATTLESHIPS_CHOICE: return "Battleships";
+	default: return "N/A";
+	}
+}
+
 #define IDLE_TIME_BEFORE_SPLASH 1000
 void updateMenuMode(bool redraw) {
 	static int menuChoicePos = 0;
 	static bool player2 = false;
 	static int animate_player2 = 0;
+	bool redraw_lcd = false;
 
 	if(redraw) {
+		fadeOutMusic(20);
         fillScreen(PLAYER1+DEF, MENU_BG);
 		menuChoicePos = 0;
 		fillRect(PLAYER1 + DEF, 0, MENU_OPTIONS_Y_OFFSET, 1, MENU_CHOICE_COUNT, MENU_OPTION_BG);
 		animate_player2 = 0;
+		redraw_lcd = true;
 	    if(player2) //We keep p2 from previous
 			drawP2Human();
 		else
@@ -95,6 +107,7 @@ void updateMenuMode(bool redraw) {
 	else {
 		//playSoundEffect(SOUND_MOVE_ACTION);
 		setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + prevChoice, MENU_OPTION_BG);
+		redraw_lcd = true;
 	}
 
 	CRGB color = interpolate(MENU_OPTION_COLOR_1, MENU_OPTION_COLOR_2, (sin(frameCount/5.)+1)/2);
@@ -103,7 +116,7 @@ void updateMenuMode(bool redraw) {
 	if(clicked(framesHeld.one()[BUTTON_A])) {
 		playSoundEffect(SOUND_DONE);
 		switch(menuChoicePos) {
-		case 0:
+		case BATTLESHIPS_CHOICE:
 			configureShipPlaceMode(player2);
 			heavyTransitionTo(SHIP_PLACE_MODE, 10); break;
 		default: heavyTransitionTo(MENU_MODE, 20); break;
@@ -114,12 +127,14 @@ void updateMenuMode(bool redraw) {
 		playSoundEffect(SOUND_PLAYER_2_JOIN);
 		player2 = true;
 		animate_player2 = 20;
+		redraw_lcd = true;
 	}
 
 	if(clicked(framesHeld.two()[BUTTON_MENU]) && player2) {
 		playSoundEffect(SOUND_PLAYER_2_LEAVE);
 		player2 = false;
 	    animate_player2 = 20;
+		redraw_lcd = true;
 	}
 
 	if(animate_player2) {
@@ -129,6 +144,29 @@ void updateMenuMode(bool redraw) {
 			drawP2Human();
 		else
 			drawP2CPU();
+	}
+
+	if(redraw_lcd) {
+		fadeOutMusic(20);
+
+		bothPlayers(clearLCD(player));
+		if(player2)
+			printLCDText(PLAYER1, "Spill sammen:");
+		else
+			printLCDText(PLAYER1, "Spill alene:");
+		setLCDPosition(PLAYER1, 2, 1);
+		printLCDText(PLAYER1, get_game_name(menuChoicePos));
+
+		if(player2) {
+			printLCDText(PLAYER2, "Du er med!");
+			setLCDPosition(PLAYER2, 2, 1);
+			printLCDText(PLAYER2, "(MENU) - Forlat");
+		}
+		else {
+			printLCDText(PLAYER2, "Du er ikke med!");
+			setLCDPosition(PLAYER2, 2, 1);
+			printLCDText(PLAYER2, "(A) - Bli med");
+		}
 	}
 
 	if(frameCount - lastFrameInteractedWith > IDLE_TIME_BEFORE_SPLASH)

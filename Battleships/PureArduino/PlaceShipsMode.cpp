@@ -4,13 +4,13 @@
 #include "LotsOfHeader.hpp"
 
 #define B21 Boat{2, 1, {200, 160, 20}}
+#define C21 Boat{2, 1, {200, 200, 20}}
 #define B31 Boat{3, 1, {200, 160, 230}}
 #define C31 Boat{3, 1, {250, 200, 120}}
+#define D31 Boat{3, 1, {160, 240, 120}}
 #define B41 Boat{4, 1, {230, 100, 150}}
-#define C41 Boat{4, 1, {250, 150, 150}}
-#define B22 Boat{2, 2, {250, 10, 100}}
-#define B32 Boat{3, 2, {250, 100, 100}}
-const Boat DEFAULT_BOATS[] = {B21, B31, C31, B41, C41, B22, B32};
+#define B51 Boat{5, 1, {250, 150, 150}}
+const Boat DEFAULT_BOATS[] = {B21, C21, B31, C31, B41, B51};
 #define BOAT_COUNT (int)(sizeof(DEFAULT_BOATS)/sizeof(*DEFAULT_BOATS))
 
 Boat boats[2][BOAT_COUNT];
@@ -37,7 +37,8 @@ bool handlePlayerBoatPlacement(int player_global, bool* redraw, bool* overlappin
 
 	int* buttons = framesHeld.raw+(p*BTN_OFFSET_P2);
 	if(placed > 0 && clicked(buttons[BUTTON_MENU])) {
-		placed--; //TODO: Play revert sound
+		placed--;
+		playSoundEffect(SOUND_ILLEGAL_ACTION);
 		*redraw = true;
 	}
 
@@ -110,7 +111,6 @@ void drawPlayerBoatPlacement(int player_global, bool overlapping) {
 }
 
 void updateShipPlaceMode(bool redraw) {
-
 	bool done = true;
 	bool p1Overlap, p2Overlap;
 
@@ -123,6 +123,14 @@ void updateShipPlaceMode(bool redraw) {
 			drawP2AIText(CRGB::Green);
 		drawBoats(PLAYER1);
 		drawBoats(PLAYER2);
+
+		bothPlayers(clearLCD(player));
+		bothPlayers(printLCDText(player, "Plasser skip:"));
+		bothPlayers(setLCDPosition(player, 2, 1));
+		printLCDNumber(PLAYER1, boatsPlaced[0]);
+		printLCDNumber(PLAYER2, boatsPlaced[1]);
+		bothPlayers(printLCDText(player, "/"));
+		bothPlayers(printLCDNumber(player, BOAT_COUNT));
 	}
 
 	drawPlayerBoatPlacement(PLAYER1, p1Overlap);

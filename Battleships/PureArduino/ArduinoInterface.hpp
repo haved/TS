@@ -10,6 +10,9 @@ void assert(bool val);
 #define WIDTH 10
 #define HEIGHT 10
 
+#define LCD_WIDTH 16
+#define LCD_LINES 2
+
 #define PLAYER1 0
 #define PLAYER2 2
 #define ATK 0
@@ -42,6 +45,7 @@ struct ButtonState {
 
 #define allScreens(content) \
 	for(int screen = 0; screen < 4; screen++){content;}
+#define bothPlayers(content) do { int player=PLAYER1; content; player=PLAYER2; content; } while(false)
 
 void setTile(int screen, int x, int y, CRGB color);
 void fillRect(int screen, int x, int y, int width, int height, CRGB color);
@@ -54,6 +58,11 @@ bool anyTransitionRunning();
 void getButtonStates(ButtonState<bool>& state);
 CRGB getWrittenColor(int screen, int x, int y);
 CRGB getCurrentColor(int screen, int x, int y);
+
+void clearLCD(int player, bool home=true);
+void setLCDPosition(int player, int line, int col); //1-indexed
+void printLCDText(int player, const char* text);
+void printLCDNumber(int player, int number);
 
 #ifdef __AVR__
 #include "sound/SoundInterface.hpp"

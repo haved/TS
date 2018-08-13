@@ -51,7 +51,7 @@ void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int
 		for(int y = 0; y < HEIGHT; y++)
 			p1Attacks[x][y] = p2Attacks[x][y] = UNCHARTED;
 
-	loopMusic(MUSIC_PIRATE_MUSIC);
+	fadeOutMusic(20);
 }
 
 CRGB getColorOfATK(int hitStatus) {
@@ -153,6 +153,12 @@ bool handlePlayerTurn() {
 }
 
 void updateBattleshipsMode(bool redraw) {
+
+	if(redraw) {
+		loopMusic(MUSIC_PIRATE_MUSIC);
+		bothPlayers(clearLCD(player));
+	}
+
 	static CRGB underAtkMarkerColor;
 	static CRGB underDefMarkerColor;
 	if(redraw | (!done && handlePlayerTurn())) {

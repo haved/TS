@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
 #include <cstring>
+#include <string>
+#include <iostream>
 
 #include "../PureArduino/ArduinoInterface.hpp"
 #include "../Sound/SoundSystem.hpp"
@@ -61,8 +63,11 @@ void startTransition(int screen, int frames) {
 	transGoingMask |= 1<<screen;
 }
 
+void update_gtk_LCDs();
 GtkWidget* drawing_area;
 void updateScreens() {
+	update_gtk_LCDs();
+
 	for(int screen = 0; screen < 4; screen++) {
 		if(transGoingMask & 1<<screen) {
 			transProg[screen]++;
@@ -95,6 +100,83 @@ CRGB getCurrentColor(int screen, int x, int y) {
 	int coord = getInternalScreenCoord(screen, x, y);
 	return leds[screen][coord];
 }
+
+GtkLabel* text_area;
+char LCDs[2][LCD_LINES][LCD_WIDTH] = {};
+int cursor_line[2]; //upper line is 1
+int cursor_col[2]; //leftmost col is 1
+bool LCD_updated = false;
+
+char LCD_updater[100];
+void update_gtk_LCDs() {
+	if(!LCD_updated)
+		return;
+	LCD_updated = false;
+
+    char* c = LCD_updater;
+	for(int pI = 0; pI < 2; pI++) {
+		*(c++) = 'P';
+		*(c++) = ('1'+pI);
+		*(c++) = ':';
+		*(c++) = '\n';
+		for(int line = 0; line < LCD_LINES; line++) {
+			for(int col = 0; col < LCD_WIDTH; col++) {
+				*(c++) = LCDs[pI][line][col];
+			}
+			*(c++) = '\n';
+		}
+		*(c++) = '\n';
+	}
+	*(c++) = 0;
+	gtk_label_set_text(text_area, LCD_updater);
+}
+
+inline int index_of_player_lcd(int player) {
+	switch(player) {
+	case PLAYER1: return 0;
+	case PLAYER2: return 1;
+	default:
+		std::cerr << "Not a valid LCD player: " << player << std::endl;
+		return 0;
+	}
+}
+
+void clearLCD(int player, bool home) {
+	int index = index_of_player_lcd(player);
+	for(int line = 0; line < LCD_LINES; line++)
+		for(int col = 0; col < LCD_WIDTH; col++)
+			LCDs[index][line][col] = ' ';
+	if(home)
+		cursor_line[index] = cursor_col[index] = 1;
+	LCD_updated = true;
+}
+
+//1-indexed
+void setLCDPosition(int player, int line, int col) {
+	assert(line > 0 && line <= LCD_LINES && col > 0 && col <= LCD_WIDTH);
+	int index = index_of_player_lcd(player);
+	cursor_line[index] = line;
+	cursor_col[index] = col;
+}
+
+void printLCDText(int player, const char* text) {
+	int index = index_of_player_lcd(player);
+	auto& line = cursor_line[index];
+	auto& col = cursor_col[index];
+    for(int i = 0; text[i] != 0 && col <= LCD_WIDTH && line<=LCD_LINES; i++) {
+		LCDs[index][cursor_line[index]-1][col-1] = text[i];
+		col++;
+	}
+
+	LCD_updated = true;
+}
+
+void printLCDNumber(int player, int number) {
+	printLCDText(player, std::to_string(number).c_str());
+	LCD_updated = true;
+}
+
+//END of Arduino function implementations
 
 int getKeyIndex(int keyval) {
 	switch(keyval) {
@@ -181,9 +263,18 @@ int main(int argc, char** argv) {
 	g_signal_connect (G_OBJECT (window), "key_release_event", G_CALLBACK (on_key_release), NULL);
 	gtk_widget_add_tick_callback(window, main_tick, NULL, NULL);
 
+	GtkBox* box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)); //spacing
+	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(box));
+
+	text_area = GTK_LABEL(gtk_label_new("0123456789ABCDEF\nFEDCBA9876543210"));
+	gtk_label_set_max_width_chars(text_area, LCD_WIDTH);
+	gtk_label_set_lines(text_area, LCD_LINES);
+	gtk_box_pack_start(box, GTK_WIDGET(text_area), false, false, 0);
+	clearLCD(PLAYER1); clearLCD(PLAYER2);
+
     drawing_area = gtk_drawing_area_new();
 	gtk_widget_set_size_request(drawing_area, BIGGEST_TILE_SIZE*WIDTH, (TILE_SIZE_ATK+TILE_SIZE_DEF)*HEIGHT*2+SCREEN_MARGIN*3);
-	gtk_container_add(GTK_CONTAINER(window), drawing_area);
+	gtk_box_pack_start(box, drawing_area, false, false, 0);
 
 	g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(on_draw_event), NULL);
 

@@ -25,6 +25,9 @@ void setup() {
   Serial.setTimeout(1000);
   Serial.begin(115200);
 
+  Serial1.begin(9600);
+  Serial2.begin(9600);
+
   FastLED.addLeds < WS2812B, DATA_PIN_MIN + 0, GRB > (leds[0], LED_COUNT);
   FastLED.addLeds < WS2812B, DATA_PIN_MIN + 1, GRB > (leds[1], LED_COUNT);
   FastLED.addLeds < WS2812B, DATA_PIN_MIN + 2, GRB > (leds[2], LED_COUNT);
@@ -116,7 +119,6 @@ void updateScreens() {
     }
   }
   FastLED.show();
-  Serial.println("Update");
 }
 
 bool anyTransitionRunning() {
@@ -136,6 +138,39 @@ CRGB getWrittenColor(int screen, int x, int y) {
 CRGB getCurrentColor(int screen, int x, int y) {
   return leds[screen][getCoordForScreen(x, y, screen)];
 }
+
+HardwareSerial& getLCDSerial(int player) {
+  return player == PLAYER2 ? Serial2 : Serial1;
+}
+
+void clearLCD(int player, bool home) {
+  getLCDSerial(player).print("$CLEAR\n");
+  if(home)
+    getLCDSerial(player).print("$HOME\n");
+    
+}
+void setLCDPosition(int player, int line, int col) { //1-indexed
+  /*auto& lcd = getLCDSerial(player);
+  lcd.print("$GO ");
+  lcd.print(line);
+  lcd.print(" ");
+  lcd.print(col);
+  lcd.print('\n');*/
+}
+void printLCDText(int player, const char* text) {
+  /*auto& lcd = getLCDSerial(player);
+  lcd.print("$PRINT ");
+  lcd.print(text);
+  lcd.print('\n');*/
+}
+void printLCDNumber(int player, int number) {
+  /*auto& lcd = getLCDSerial(player);
+  lcd.print("$PRINT ");
+  lcd.print(number);
+  lcd.print('\n');*/
+}
+
+
 
 void assert(bool b) {
   for (int i = 0; !b; i = (i + 1) % LED_COUNT) {

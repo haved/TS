@@ -6,6 +6,13 @@ CRGB colors[] = {{255, 0, 0}, {0, 0, 255}, {100, 100, 200}, {255, 255, 0}, {0, 2
 #define SCREEN_COLOR_COUNT (sizeof(colors)/sizeof(*colors))
 void updateSplashScreenMode(bool redraw) {
 
+	if(redraw) {
+		bothPlayers(clearLCD(player));
+		bothPlayers(printLCDText(player, "Velkommen!"));
+		bothPlayers(setLCDPosition(player, 1, 1));
+		bothPlayers(printLCDText(player, "Trykk A eller B"));
+	}
+
 	if(clicked(buttons.one()[BUTTON_A]) || clicked(buttons.one()[BUTTON_B])
 	   || clicked(buttons.two()[BUTTON_A]) || clicked(buttons.two()[BUTTON_B])) {
 		playSoundEffect(SOUND_ACTION);
