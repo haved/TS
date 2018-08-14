@@ -1,0 +1,11 @@
+* Software
+** TODO Make hold repeat faster on Arduino
+** TODO Make menu quit faster on Arduino
+** Battleships
+*** TODO Change color of aim aquired vs boat hit
+*** TODO Vis at noen har vunnet
+** Tetris
+*** TODO Fix power usage
+*** TODO Fix blue screen when exiting
+** Splash screen
+** TODO Make start start menu

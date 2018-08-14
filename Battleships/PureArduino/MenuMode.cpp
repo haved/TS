@@ -7,7 +7,7 @@
 #define MENU_OPTION_COLOR_1 CRGB(255, 0, 0)
 #define MENU_OPTION_COLOR_2 CRGB(255, 90, 255)
 
-#define MENU_OPTIONS_Y_OFFSET 1
+#define MENU_OPTIONS_Y_OFFSET 0
 #define MENU_CHOICE_COUNT 6
 
 #define P1_SHIRT_COLOR CRGB(250,70,100)
@@ -65,11 +65,15 @@ void drawP2Human() {
 	drawPerson(PLAYER2+ATK, 6, 1, P2_EYE_COLOR, P2_SHIRT_COLOR);
 }
 
+enum MenuChoice {
+				 BATTLESHIPS_CHOICE=0,
+				 TETRIS_CHOICE
+};
 
-#define BATTLESHIPS_CHOICE 0
 const char* get_game_name(int code) {
 	switch(code) {
 	case BATTLESHIPS_CHOICE: return "Battleships";
+	case TETRIS_CHOICE: return "Tetris";
 	default: return "N/A";
 	}
 }
@@ -119,6 +123,9 @@ void updateMenuMode(bool redraw) {
 		case BATTLESHIPS_CHOICE:
 			configureShipPlaceMode(player2);
 			heavyTransitionTo(SHIP_PLACE_MODE, 10); break;
+		case TETRIS_CHOICE:
+		    configureTetrisMode(player2);
+			heavyTransitionTo(TETRIS_GAME_MODE, 10); break;
 		default: heavyTransitionTo(MENU_MODE, 20); break;
 		}
 	}

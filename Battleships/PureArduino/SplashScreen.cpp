@@ -2,8 +2,8 @@
 #include "GameLogic.hpp"
 
 #define TRANSITION_TIME 100
-CRGB colors[] = {{255, 0, 0}, {0, 0, 255}, {100, 100, 200}, {255, 255, 0}, {0, 255, 255}, {0, 255, 0}};
-#define SCREEN_COLOR_COUNT (sizeof(colors)/sizeof(*colors))
+CRGB ss_colors[] = {{255, 0, 0}, {0, 0, 255}, {100, 100, 200}, {255, 255, 0}, {0, 255, 255}, {0, 255, 0}};
+#define SCREEN_COLOR_COUNT (sizeof(ss_colors)/sizeof(*ss_colors))
 void updateSplashScreenMode(bool redraw) {
 
 	if(redraw) {
@@ -30,5 +30,5 @@ void updateSplashScreenMode(bool redraw) {
 
 	startTransitionAll(TRANSITION_TIME);
 	for(int i = 0; i < 4; i++)
-		fillScreen(i, colors[(currentScreen+i)%SCREEN_COLOR_COUNT]);
+		fillScreen(i, ss_colors[(currentScreen+i)%SCREEN_COLOR_COUNT]);
 }

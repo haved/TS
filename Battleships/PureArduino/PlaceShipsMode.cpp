@@ -4,13 +4,14 @@
 #include "LotsOfHeader.hpp"
 
 #define B21 Boat{2, 1, {200, 160, 20}}
-#define C21 Boat{2, 1, {200, 200, 20}}
+#define C21 Boat{2, 1, {250, 180, 20}}
+#define D21 Boat{2, 1, {200, 200, 20}}
 #define B31 Boat{3, 1, {200, 160, 230}}
 #define C31 Boat{3, 1, {250, 200, 120}}
 #define D31 Boat{3, 1, {160, 240, 120}}
 #define B41 Boat{4, 1, {230, 100, 150}}
 #define B51 Boat{5, 1, {250, 150, 150}}
-const Boat DEFAULT_BOATS[] = {B21, C21, B31, C31, B41, B51};
+const Boat DEFAULT_BOATS[] = {B21, C21, D21, B31, C31, D31, B41, B51};
 #define BOAT_COUNT (int)(sizeof(DEFAULT_BOATS)/sizeof(*DEFAULT_BOATS))
 
 Boat boats[2][BOAT_COUNT];

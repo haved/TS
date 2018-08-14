@@ -15,3 +15,6 @@ void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int
 //OceanDrawer.cpp
 void drawOceanTile(int screen, int x, int y, int frame);
 void drawWholeOcean(int screen, int frame);
+
+//TetrisMode.cpp
+void configureTetrisMode(bool player2);

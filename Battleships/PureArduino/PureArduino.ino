@@ -174,7 +174,7 @@ void printLCDNumber(int player, int number) {
 
 void assert(bool b) {
   for (int i = 0; !b; i = (i + 1) % LED_COUNT) {
-    leds[0][i] = CRGB::Green;
+    leds[0][i] = CRGB::Red;
     FastLED.show();
     leds[0][i] = CRGB::Blue;
     delay(10);
