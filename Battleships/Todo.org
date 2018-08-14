@@ -5,7 +5,11 @@
 *** TODO Change color of aim aquired vs boat hit
 *** TODO Vis at noen har vunnet
 ** Tetris
-*** TODO Fix power usage
-*** TODO Fix blue screen when exiting
+*** DONE Fix power usage
+	CLOSED: [2018-08-14 Tue 17:42]
+Just changed colors to darker
+*** DONE Fix blue screen when exiting
+	CLOSED: [2018-08-14 Tue 17:39]
+Done at Egon
 ** Splash screen
-** TODO Make start start menu
+*** TODO Make start start menu

@@ -2,6 +2,7 @@
 #include "GameLogic.hpp"
 #include "LotsOfHeader.hpp"
 #include <stdint.h>
+#include <algorithm>
 
 CRGB t_colors[] = {0x222222, 0xAA0000, 0x0000AA, 0x00AAAA, 0xAAAA00, 0xAA6600, 0x00AA00, 0xAA0066};
 enum TetrisColor:int {BG, RED, BLUE, CYAN, YELLOW, ORANGE, GREEN, PINKK};
@@ -10,24 +11,25 @@ struct TetrisShape {
     int line1;
 	int line2;
 	TetrisColor color;
-	int startX;
+	int width, height=2;
 };
 
 TetrisShape t_shapes[] = { //Lowest bit furthest to the left
-						  {0b1111, 0, CYAN, 3}, //I
-						  {0b111, 0b100, ORANGE, 4}, //L
-						  {0b111, 0b1, BLUE, 4}, //J
-						  {0b110, 0b11, GREEN, 4}, //S
-						  {0b11, 0b110, RED, 4}, //Z
-						  {0b11, 0b11, YELLOW, 4}, //O
-						  {0b010, 0b111, PINKK, 4} //T
+						  {0b1111, 0, CYAN, 4, 1}, //I
+						  {0b111, 0b100, ORANGE, 3}, //L
+						  {0b111, 0b1, BLUE, 3}, //J
+						  {0b110, 0b11, GREEN, 3}, //S
+						  {0b11, 0b110, RED, 3}, //Z
+						  {0b11, 0b11, YELLOW, 2}, //O
+						  {0b010, 0b111, PINKK, 3} //T
 };
+
 const int t_shapeCount = sizeof(t_shapes)/sizeof(*t_shapes);
 const int MAX_LINE_LENGTH = 4;
 
 const float LINE_CLEAR_FLASH_TIME = 60;
-const float LVL1_FALL_TIME = 20;
-const float LVL1_STICK_TIME = 40;
+const float LVL1_FALL_TIME = 18;
+const float LVL1_STICK_TIME = 24;
 
 const int LINE_CLEAR_SCORE[] = {0, 500, 1500, 2500, 4000, 9999};
 
@@ -82,8 +84,27 @@ void funcOnLine(F& func, int line, int lineX, int lineY, int dx, int dy) {
 
 template<typename F>
 void funcOnPiece(PlayerData& player, F& func) {
-    funcOnLine(func, player.currentShape->line1, player.currentXPos, player.currentYPos,   1, 0);
-	funcOnLine(func, player.currentShape->line2, player.currentXPos, player.currentYPos+1, 1, 0);
+	int w = player.currentShape->width;
+	int h = player.currentShape->height;
+
+	switch(player.currentRot) {
+	case 0:
+		funcOnLine(func, player.currentShape->line1, player.currentXPos-w/2, player.currentYPos,   1, 0);
+		funcOnLine(func, player.currentShape->line2, player.currentXPos-w/2, player.currentYPos+1, 1, 0);
+		break;
+	case 1:
+		funcOnLine(func, player.currentShape->line1, player.currentXPos,   player.currentYPos-w/2, 0, 1);
+		funcOnLine(func, player.currentShape->line2, player.currentXPos-1, player.currentYPos-w/2, 0, 1);
+		break;
+	case 2:
+		funcOnLine(func, player.currentShape->line1, player.currentXPos+w/2, player.currentYPos,   -1, 0);
+		funcOnLine(func, player.currentShape->line2, player.currentXPos+w/2, player.currentYPos-1, -1, 0);
+		break;
+	case 3:
+		funcOnLine(func, player.currentShape->line1, player.currentXPos,   player.currentYPos+w/2, 0, -1);
+		funcOnLine(func, player.currentShape->line2, player.currentXPos+1, player.currentYPos+w/2, 0, -1);
+		break;
+	}
 }
 
 bool legalPos(PlayerData& player) {
@@ -112,7 +133,7 @@ void newPiece(PlayerData& player) {
 	player.nextShape = genRandPiece(player.seed);
 
 	player.currentRot = 0;
-	player.currentXPos = player.currentShape->startX;
+	player.currentXPos = (10-player.currentShape->width)/2;
 	player.currentYPos = 0;
 	player.timeLeftToGravity = player.givenTimeToFall;
 	player.onFloor = false;
@@ -185,7 +206,6 @@ void removeClearedLines(PlayerData& player) {
 }
 
 void flashPieceToBoard(PlayerData& player) {
-
 	auto color = player.currentShape->color;
 	auto flashFunc = [&](int x, int y) {
 						 player.board[x][y] = color;
@@ -195,6 +215,23 @@ void flashPieceToBoard(PlayerData& player) {
 
 	player.currentShape = nullptr;
 	checkIfCleared(player);
+}
+
+bool rotatePiece(PlayerData& player, int dir) {
+	int oldRot = player.currentRot;
+	int oldX = player.currentXPos;
+	int oldY = player.currentYPos;
+
+    player.currentRot+=4+dir;
+	player.currentRot%=4;
+
+	if(!legalPos(player)) {
+		player.currentRot = oldRot;
+		player.currentXPos = oldX;
+		player.currentYPos = oldY;
+		return false;
+	}
+	return true;
 }
 
 bool updatePlayer(PlayerData& player, int button_offset) {
@@ -229,6 +266,10 @@ bool updatePlayer(PlayerData& player, int button_offset) {
 		else
 			changed = true;
 	}
+	if(clicked(framesHeld.raw[button_offset+BUTTON_UP])) {
+	    if(rotatePiece(player, 1))
+			changed = true;
+	}
 
 	if(changed)
 		player.onFloor = false;
@@ -240,7 +281,7 @@ bool updatePlayer(PlayerData& player, int button_offset) {
 			changed = true;
 		}
 	} else {
-		float fallSpeedModif = buttons.raw[button_offset+BUTTON_DOWN] ? 3 : 1;
+		float fallSpeedModif = buttons.raw[button_offset+BUTTON_DOWN] ? 3 : 0;
 		player.timeLeftToGravity-=delta_time()*fallSpeedModif;
 		if(player.timeLeftToGravity <= 0) {
 			player.timeLeftToGravity = player.givenTimeToFall;
@@ -269,6 +310,8 @@ bool updatePlayer(PlayerData& player, int button_offset) {
 				   };
 
 	 funcOnPiece(player, drawer);
+
+	 setTile(screen, player.currentXPos, HEIGHT-1-player.currentYPos, CRGB::Green);
 }
 
 void redrawBoard(PlayerData& player, int screen) {
@@ -300,17 +343,15 @@ void updateTetrisMode(bool redraw) {
 	bool redrawP2 = t_player2 && (updatePlayer(t_players[1], BTN_OFFSET_P2) || redraw);
 
 	if(redrawP1) {
+		redrawBoard(t_players[0], PLAYER1+ATK);
 		if(t_players[0].lost)
 			fillScreen(PLAYER1+DEF, CRGB::Red);
-		else
-			redrawBoard(t_players[0], PLAYER1+ATK);
 	}
 
 	if(redrawP2) {
+		redrawBoard(t_players[1], PLAYER2+ATK);
 		if(t_players[1].lost)
 			fillScreen(PLAYER2+DEF, CRGB::Red);
-		else
-			redrawBoard(t_players[1], PLAYER2+ATK);
 	}
 
 	handleHoldEscToMenu();
