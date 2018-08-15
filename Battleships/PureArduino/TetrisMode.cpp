@@ -27,7 +27,7 @@ TetrisShape t_shapes[] = { //Lowest bit furthest to the left
 const int t_shapeCount = sizeof(t_shapes)/sizeof(*t_shapes);
 const int MAX_LINE_LENGTH = 4;
 
-const float LINE_CLEAR_FLASH_TIME = 60;
+const float LINE_CLEAR_FLASH_TIME = 30;
 const float LVL1_FALL_TIME = 18;
 const float LVL1_STICK_TIME = 24;
 
@@ -219,17 +219,33 @@ void flashPieceToBoard(PlayerData& player) {
 
 bool rotatePiece(PlayerData& player, int dir) {
 	int oldRot = player.currentRot;
-	int oldX = player.currentXPos;
-	int oldY = player.currentYPos;
+	int& X = player.currentXPos;
+	int& Y = player.currentYPos;
 
     player.currentRot+=4+dir;
 	player.currentRot%=4;
 
 	if(!legalPos(player)) {
-		player.currentRot = oldRot;
-		player.currentXPos = oldX;
-		player.currentYPos = oldY;
-		return false;
+		X++;
+		if(legalPos(player));
+		else {
+			X-=2;
+			if(legalPos(player));
+			else {
+				X++;
+			    Y++;
+				if(legalPos(player));
+				else {
+					Y-=2;
+					if(legalPos(player));
+					else {
+						Y++;
+						player.currentRot = oldRot;
+						return false;
+   					}
+				}
+			}
+		}
 	}
 	return true;
 }
