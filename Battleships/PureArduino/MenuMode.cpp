@@ -88,7 +88,6 @@ void updateMenuMode(bool redraw) {
 	if(redraw) {
 		fadeOutMusic(20);
         fillScreen(PLAYER1+DEF, MENU_BG);
-		menuChoicePos = 0;
 		fillRect(PLAYER1 + DEF, 0, MENU_OPTIONS_Y_OFFSET, 1, MENU_CHOICE_COUNT, MENU_OPTION_BG);
 		animate_player2 = 0;
 		redraw_lcd = true;
@@ -130,7 +129,7 @@ void updateMenuMode(bool redraw) {
 		}
 	}
 
-	if(clicked(framesHeld.two()[BUTTON_A]) && !player2) {
+	if(framesHeld.two()[BUTTON_A]==1 && !player2) {
 		playSoundEffect(SOUND_PLAYER_2_JOIN);
 		player2 = true;
 		animate_player2 = 20;

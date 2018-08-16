@@ -9,8 +9,8 @@ ButtonState<int> framesHeld = {};
 bool clicked(int framesHeld) {
 	if(framesHeld == 1)
 		return true;
-	if(framesHeld > 20)
-		return (framesHeld-20)%6 == 0;
+	if(framesHeld > 10)
+		return (framesHeld-10)%4 == 0;
 	return false;
 }
 
