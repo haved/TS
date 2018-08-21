@@ -17,6 +17,11 @@ void assert(bool val);
 #define PLAYER2 2
 #define ATK 0
 #define DEF 1
+
+enum CoordType {
+				BS_COORDS,
+				NORMAL_COORDS,
+};
 //24: P1_ATK
 //25: P1_DEF
 //26: P2_ATK
@@ -47,8 +52,8 @@ struct ButtonState {
 	for(int screen = 0; screen < 4; screen++){content;}
 #define bothPlayers(content) do { int player=PLAYER1; content; player=PLAYER2; content; } while(false)
 
-void setTile(int screen, int x, int y, CRGB color);
-void fillRect(int screen, int x, int y, int width, int height, CRGB color);
+void setTile(int screen, int x, int y, CRGB color, CoordType ct = BS_COORDS);
+void fillRect(int screen, int x, int y, int width, int height, CRGB color, CoordType ct = BS_COORDS);
 void fillScreen(int screen, CRGB color);
 inline void fillAllScreens(CRGB color) {allScreens(fillScreen(screen, color));}
 void startTransition(int screen, int frames);
@@ -56,8 +61,8 @@ inline void startTransitionAll(int frames) {allScreens(startTransition(screen, f
 void updateScreens();
 bool anyTransitionRunning();
 void getButtonStates(ButtonState<bool>& state);
-CRGB getWrittenColor(int screen, int x, int y);
-CRGB getCurrentColor(int screen, int x, int y);
+CRGB getWrittenColor(int screen, int x, int y, CoordType ct = BS_COORDS);
+CRGB getCurrentColor(int screen, int x, int y, CoordType ct = BS_COORDS);
 
 void clearLCD(int player, bool home=true);
 void setLCDPosition(int player, int line, int col); //1-indexed

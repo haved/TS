@@ -3,7 +3,8 @@
 #include "LotsOfHeader.hpp"
 #include <stdint.h>
 
-CRGB t_colors[] = {0x222222, 0xAA0000, 0x0000AA, 0x00AAAA, 0xAAAA00, 0xAA6600, 0x00AA00, 0xAA0066};
+CRGB t_colors[] =      {0x222222, 0xAA0000, 0x0000AA, 0x00AAAA, 0xAAAA00, 0xAA6600, 0x00AA00, 0xAA0066};
+CRGB t_colors_lost[] = {0x222222, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999};
 enum TetrisColor:int {BG, RED, BLUE, CYAN, YELLOW, ORANGE, GREEN, PINKK};
 
 const float TETRIS_DELTA_TIME = 1;
@@ -25,15 +26,16 @@ const TetrisShape t_shapes[] = { //Lowest bit furthest to the left
 						  {0b111, 0b010, PINKK, 3, 2} //T
 };
 
-const int t_shapeCount = sizeof(t_shapes)/sizeof(*t_shapes);
+const int T_SHAPE_COUNT = sizeof(t_shapes)/sizeof(*t_shapes);
 const int MAX_LINE_LENGTH = 4;
 
+const float LOST_ANIMATION_SPEED = 0.05;
 const float LINE_CLEAR_FLASH_TIME = 30;
 const float LVL1_FALL_TIME = 26;
 const float LVL1_STICK_TIME = 40;
 const float DOWN_BUTTON_SPEED_MODIF = 3;
 
-const int LINE_CLEAR_SCORE[] = {0, 500, 1500, 2500, 4000, 9999};
+const int LINE_CLEAR_SCORE[] = {0, 100, 300, 500, 800, 9999};
 
 const int DEFAULT_ROT = 2;
 
@@ -43,6 +45,8 @@ const int DEFAULT_ROT = 2;
 bool t_player2;
 struct PlayerData {
     uint16_t seed;
+	TetrisShape const *(seven_bag[T_SHAPE_COUNT]);
+	int seven_bag_left = 0;
 
 	TetrisColor board[WIDTH][HEIGHT];
 	const TetrisShape* currentShape;
@@ -62,6 +66,7 @@ struct PlayerData {
 
 	int score;
 	bool lost;
+    float lost_animation;
 
 	int level;
 	float givenTimeToFall;
@@ -79,7 +84,7 @@ void levelUp(PlayerData& player) {
 
 void addScore(PlayerData& player, int score) {
 	player.score += score;
-    while(player.level*player.level*1000 < player.score)
+    while(player.level*800 < player.score)
 		levelUp(player);
 }
 
@@ -142,25 +147,49 @@ void resetPiece(PlayerData& player) {
 	player.lost = !legalPos(player);
 }
 
-const TetrisShape* genRandPiece(uint16_t& seed) {
-
+uint16_t genRandNum(uint16_t& seed) {
 	uint16_t bit  = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5) ) & 1;
 	seed = (seed >> 1) | (bit << 15);
-	return &t_shapes[seed%t_shapeCount];
+	return seed;
 }
 
+template <typename T>
+void swap(T& a, T& b) {
+	auto tmp = a;
+	a = b;
+	b = tmp;
+}
+
+const TetrisShape* genRandPiece(PlayerData& player) {
+	if(player.seven_bag_left == 0) {
+		player.seven_bag_left = T_SHAPE_COUNT;
+		for(int i = 0; i < T_SHAPE_COUNT; i++)
+			player.seven_bag[i] = &t_shapes[i];
+
+		//Shuffle
+		for(int i = 0; i < T_SHAPE_COUNT; i++) {
+			int x = genRandNum(player.seed)%(T_SHAPE_COUNT-i);
+			swap(player.seven_bag[i], player.seven_bag[i+x]);
+		}
+	}
+
+	player.seven_bag_left--;
+	return player.seven_bag[player.seven_bag_left];
+}
 
 void newPiece(PlayerData& player) {
     if(!player.nextShape)
-		player.nextShape = genRandPiece(player.seed);
+		player.nextShape = genRandPiece(player);
 	player.currentShape = player.nextShape;
-	player.nextShape = genRandPiece(player.seed);
+	player.nextShape = genRandPiece(player);
 
 	resetPiece(player);
 }
 
 void resetPlayer(PlayerData& player, int seed) {
 	player.seed = seed;
+	player.seven_bag_left = 0;
+
 	for(int x = 0; x < WIDTH; x++) {
 		for(int y = 0; y < HEIGHT; y++) {
 			player.board[x][y] = BG;
@@ -172,11 +201,13 @@ void resetPlayer(PlayerData& player, int seed) {
 
 	player.currentShape = nullptr;
 	player.nextShape = nullptr;
-	newPiece(player);
 
 	player.lost = false;
+	player.lost_animation = HEIGHT;
 	player.score = 0;
 	player.fullLines = 0; //Bitmask
+
+	newPiece(player);
 }
 
 void configureTetrisMode(bool player2) {
@@ -291,8 +322,13 @@ bool rotatePiece(PlayerData& player, int dir) {
 }
 
 bool updatePlayer(PlayerData& player, int button_offset) {
-	if(player.lost)
+	if(player.lost) {
+		if(player.lost_animation > 0) {
+			player.lost_animation -= delta_time() * LOST_ANIMATION_SPEED;
+			return true;
+		}
 		return false;
+	}
 
 	if(player.fullLines) {
 		player.lineClearFlashLeft -= TETRIS_DELTA_TIME;
@@ -377,12 +413,11 @@ void drawPiece(const TetrisShape* shape, int x, int y, int rot, int screen) {
 
 	auto drawer = [&](int x, int y) {
 					  if(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
-						  setTile(screen, screen >= PLAYER2 ? WIDTH-x-1 : x, screen % 2 == ATK ? HEIGHT-1-y : y, color);
+						  setTile(screen, x, y, color, NORMAL_COORDS);
 				  };
 
 	funcOnPiece(shape, x, y, rot, drawer);
 
-	//setTile(screen, x, HEIGHT-1-y, CRGB::Green);
 }
 
 void drawNextPiece(PlayerData& player, int screen) {
@@ -392,31 +427,36 @@ void drawNextPiece(PlayerData& player, int screen) {
 }
 
 void drawLevel(PlayerData& player, int screen) {
-	fillRect(screen, 0, 0, WIDTH, 1, CRGB::Red);
+	fillRect(screen, 0, 0, WIDTH, 1, CRGB::White);
 	if(player.level <= 10)
-		fillRect(screen, 0, 0, player.level, 1, CRGB::Green);
+		fillRect(screen, 0, 0, player.level, 1, CRGB::Red);
+	else if(player.level <= 20)
+		fillRect(screen, 0, 0, player.level-10, 1, CRGB::Green);
+	else if(player.level <= 30)
+		fillRect(screen, 0, 0, player.level-20, 1, CRGB::Blue);
 }
 
 void drawHold(PlayerData& player, int screen) {
 	fillRect(screen, 6, 6, 4, 4, CRGB::Red);
 	if(player.holdShape != nullptr)
-		drawPiece(player.holdShape, 8, 8, DEFAULT_ROT, screen);
+		drawPiece(player.holdShape, 7, 8, DEFAULT_ROT, screen);
 }
 
 void redrawBoard(PlayerData& player, int screen) {
     for(int y = 0; y < HEIGHT; y++) {
-		int screenY = HEIGHT-1-y;
-		bool flashLine = (player.fullLines >> screenY) & 0x1;
+		bool flashLine = (player.fullLines >> (HEIGHT-1-y)) & 0x1;
 		bool hidden = (int)player.lineClearFlashLeft & 0x1;
 		if(flashLine && hidden)
-			fillRect(screen, 0, screenY, WIDTH, 1, t_colors[BG]);
-		else
+			fillRect(screen, 0, y, WIDTH, 1, t_colors[BG], NORMAL_COORDS);
+		else {
+			auto& palette = y > player.lost_animation ? t_colors_lost : t_colors;
 			for(int x = 0; x < WIDTH; x++) {
-				setTile(screen, screen >= PLAYER2 ? WIDTH-1-x : x, screenY, t_colors[player.board[x][y]]);
+				setTile(screen, x, y, palette[player.board[x][y]], NORMAL_COORDS);
 			}
+		}
 	}
 
-	if(player.currentShape)
+	if(player.currentShape && !player.lost)
 		drawPiece(player.currentShape, player.currentXPos, player.currentYPos, player.currentRot, screen);
 }
 
@@ -434,24 +474,16 @@ void updateTetrisMode(bool redraw) {
 
 	if(redrawP1) {
 		redrawBoard(t_players[0], PLAYER1+ATK);
-		if(t_players[0].lost)
-			fillScreen(PLAYER1+DEF, CRGB::Red);
-		else {
-			drawNextPiece(t_players[0], PLAYER1+DEF);
-			drawLevel(t_players[0], PLAYER1+DEF);
-			drawHold(t_players[0], PLAYER1+DEF);
-		}
+		drawNextPiece(t_players[0], PLAYER1+DEF);
+		drawLevel(t_players[0], PLAYER1+DEF);
+		drawHold(t_players[0], PLAYER1+DEF);
 	}
 
 	if(redrawP2) {
 		redrawBoard(t_players[1], PLAYER2+ATK);
-		if(t_players[1].lost)
-			fillScreen(PLAYER2+DEF, CRGB::Red);
-		else {
-			drawNextPiece(t_players[1], PLAYER2+DEF);
-			drawLevel(t_players[1], PLAYER2+DEF);
-			drawHold(t_players[1], PLAYER2+DEF);
-		}
+		drawNextPiece(t_players[1], PLAYER2+DEF);
+		drawLevel(t_players[1], PLAYER2+DEF);
+		drawHold(t_players[1], PLAYER2+DEF);
 	}
 
 	handleHoldEscToMenu();

@@ -30,19 +30,26 @@ float delta_time() {
 //All internal screen coords have 0 in top left corner seen from P1
 //The GameLogic thinks 0,0 is to the left of player1 and right of player2
 //0,0 is closest to the gap between ATK and DEF
-int getInternalScreenCoord(int screen, int x, int y) {
-	if(screen == PLAYER1+ATK || screen == PLAYER2+DEF)
-		y = HEIGHT-1-y;
+int getInternalScreenCoord(int screen, int x, int y, CoordType ct) {
+	if(ct == BS_COORDS) {
+		if(screen == PLAYER1+ATK || screen == PLAYER2+DEF)
+			y = HEIGHT-1-y;
+	} else if(ct == NORMAL_COORDS) {
+		if(screen == PLAYER2+ATK || screen == PLAYER2+DEF) {
+			x = WIDTH-1-x;
+			y = HEIGHT-1-y;
+		}
+	}
 	return x+y*WIDTH;
 }
 
-void setTile(int screen, int x, int y, CRGB color) {
-	writeTo[screen][getInternalScreenCoord(screen, x, y)] = color;
+void setTile(int screen, int x, int y, CRGB color, CoordType ct) {
+	writeTo[screen][getInternalScreenCoord(screen, x, y, ct)] = color;
 }
-void fillRect(int screen, int x1, int y1, int width, int height, CRGB color) {
+void fillRect(int screen, int x1, int y1, int width, int height, CRGB color, CoordType ct) {
 	for(int x = x1; x < x1+width; x++)
 		for(int y = y1; y < y1+height; y++)
-			writeTo[screen][getInternalScreenCoord(screen, x, y)] = color;
+			writeTo[screen][getInternalScreenCoord(screen, x, y, ct)] = color;
 }
 
 void fillScreen(int screen, CRGB color) {
@@ -91,13 +98,13 @@ void getButtonStates(ButtonState<bool>& state) {
 	state = currentButtonState;
 }
 
-CRGB getWrittenColor(int screen, int x, int y) {
-	int coord = getInternalScreenCoord(screen, x, y);
+CRGB getWrittenColor(int screen, int x, int y, CoordType ct) {
+	int coord = getInternalScreenCoord(screen, x, y, ct);
 	return writeTo[screen][coord];
 }
 
-CRGB getCurrentColor(int screen, int x, int y) {
-	int coord = getInternalScreenCoord(screen, x, y);
+CRGB getCurrentColor(int screen, int x, int y, CoordType ct) {
+	int coord = getInternalScreenCoord(screen, x, y, ct);
 	return leds[screen][coord];
 }
 
