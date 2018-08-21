@@ -32,7 +32,7 @@ const int MAX_LINE_LENGTH = 4;
 const float LOST_ANIMATION_SPEED = 0.05;
 const float LINE_CLEAR_FLASH_TIME = 30;
 const float LVL1_FALL_TIME = 26;
-const float LVL1_STICK_TIME = 40;
+const float LVL1_STICK_TIME = 30;
 const float DOWN_BUTTON_SPEED_MODIF = 3;
 
 const int LINE_CLEAR_SCORE[] = {0, 100, 300, 500, 800, 9999};
@@ -216,7 +216,7 @@ void configureTetrisMode(bool player2) {
 	resetPlayer(t_players[1], frameCount);
 }
 
-void checkIfCleared(PlayerData& player) {
+bool checkIfCleared(PlayerData& player) {
 	player.fullLines = 0; //Lowest bit is highest Y
 	for(int y = 0; y < HEIGHT; y++) {
 		player.fullLines <<= 1;
@@ -225,8 +225,12 @@ void checkIfCleared(PlayerData& player) {
 		if(x == WIDTH)
 			player.fullLines += 1;
 	}
-	if(player.fullLines != 0)
+	if(player.fullLines != 0) {
 		player.lineClearFlashLeft = LINE_CLEAR_FLASH_TIME;
+		playSoundEffect(SOUND_CLEAR4_TETRO);
+		return true;
+	}
+	return false;
 }
 
 void removeClearedLines(PlayerData& player) {
@@ -249,7 +253,6 @@ void removeClearedLines(PlayerData& player) {
 		}
 	}
 	player.fullLines = 0;
-	playSoundEffect(SOUND_FIRE_GUN);
 
 	addScore(player, LINE_CLEAR_SCORE[clearedLines]);
 }
@@ -260,10 +263,10 @@ void flashPieceToBoard(PlayerData& player) {
 						 player.board[x][y] = color;
 							 };
 	funcOnPiece(player.currentShape, player.currentXPos, player.currentYPos, player.currentRot, flashFunc);
-	//playSoundEffect(SOUND_FIRE_GUN); //TODO: Sound
 
 	player.currentShape = nullptr;
-	checkIfCleared(player);
+	if(!checkIfCleared(player))
+		playSoundEffect(SOUND_SLOW_HIT_TETRO);
 }
 
 int wallKickTries[][2] = {
@@ -318,6 +321,7 @@ bool rotatePiece(PlayerData& player, int dir) {
 		return false;
 	}
 
+	playSoundEffect(SOUND_ROTATE_TETRO);
 	return true;
 }
 
@@ -383,7 +387,7 @@ bool updatePlayer(PlayerData& player, int button_offset) {
 
 	float fallSpeedModif = buttons.raw[button_offset+BUTTON_DOWN] ? DOWN_BUTTON_SPEED_MODIF : 1;
 	if(player.onFloor) {
-		player.timeLeftToStick -= TETRIS_DELTA_TIME*fallSpeedModif;
+		player.timeLeftToStick -= TETRIS_DELTA_TIME;
 		if(player.timeLeftToStick <= 0) {
 			flashPieceToBoard(player);
 			changed = true;

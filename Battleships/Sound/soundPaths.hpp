@@ -6,4 +6,9 @@ SOUND(ACTION, "action.wav"),
 #define SOUND_PLAYER_2_JOIN SOUND_ACTION
 SOUND(DONE, "done.wav"),
 SOUND(FIRE_GUN, "fire_gun.wav"),
-SOUND(EXPLOTION, "explotion.wav")
+SOUND(EXPLOTION, "explotion.wav"),
+
+SOUND(ROTATE_TETRO, "block-rotate.mp3"),
+SOUND(SLOW_HIT_TETRO, "slow-hit.mp3"),
+SOUND(CLEAR_TETRO, "line-remove.mp3"),
+SOUND(CLEAR4_TETRO, "line-removal4.mp3")
