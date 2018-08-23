@@ -1,6 +1,5 @@
 #!/bin/bash
-#Append following line to .config/lxsession/LXDE-pi/autostart
-#@lxterminal -l -e "(cd /home/pi/Development/TS/Battleships/SoundFromSerial ; bash ./auto_listener.sh ; read)"
+#This file needs to be run in the current directory, launch LXDE_pi_entry.sh from autostart
 ./SoundFromSerial
 git pull
 make
