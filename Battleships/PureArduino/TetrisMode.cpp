@@ -7,7 +7,7 @@ CRGB t_colors[] =      {0x222222, 0xAA0000, 0x0000AA, 0x00AAAA, 0xAAAA00, 0xAA66
 CRGB t_colors_lost[] = {0x222222, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999};
 enum TetrisColor:int {BG, RED, BLUE, CYAN, YELLOW, ORANGE, GREEN, PINKK};
 
-const float TETRIS_DELTA_TIME = 1;
+#define TETRIS_DELTA_TIME (delta_time())
 
 struct TetrisShape {
     int line1;
@@ -31,16 +31,18 @@ const int MAX_LINE_LENGTH = 4;
 
 const float LOST_ANIMATION_SPEED = 0.05;
 const float LINE_CLEAR_FLASH_TIME = 30;
-const float LVL1_FALL_TIME = 26;
-const float LVL1_STICK_TIME = 30;
-const float DOWN_BUTTON_SPEED_MODIF = 3;
+const float LVL1_FALL_TIME = 20;
+const float LVL1_STICK_TIME = 25;
+const float DOWN_BUTTON_SPEED_MODIF = 5;
 
 const int LINE_CLEAR_SCORE[] = {0, 100, 300, 500, 800, 9999};
 
 const int DEFAULT_ROT = 2;
 
-#define WIDTH 10
-#define HEIGHT 10
+const int SCORE_PER_LEVEL = 400;
+
+//#define WIDTH 10 //Already defined
+//#define HEIGHT 10
 
 bool t_player2;
 struct PlayerData {
@@ -78,13 +80,13 @@ struct PlayerData {
 void levelUp(PlayerData& player) {
 	player.level++;
 	player.givenTimeToFall = LVL1_FALL_TIME-player.level;
-	player.givenTimeToStick = LVL1_STICK_TIME-player.level;
+	player.givenTimeToStick = LVL1_STICK_TIME;
 	//TODO: Play sound
 }
 
 void addScore(PlayerData& player, int score) {
 	player.score += score;
-    while(player.level*800 < player.score)
+    while(player.level*SCORE_PER_LEVEL < player.score)
 		levelUp(player);
 }
 
@@ -260,7 +262,8 @@ void removeClearedLines(PlayerData& player) {
 void flashPieceToBoard(PlayerData& player) {
 	auto color = player.currentShape->color;
 	auto flashFunc = [&](int x, int y) {
-						 player.board[x][y] = color;
+						 if(x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
+							 player.board[x][y] = color;
 							 };
 	funcOnPiece(player.currentShape, player.currentXPos, player.currentYPos, player.currentRot, flashFunc);
 
@@ -276,7 +279,9 @@ int wallKickTries[][2] = {
 						 {-1,1},
 						 { 1,1},
 						 {-1,-1},
-						 { 1,-1}
+						 { 1,-1},
+						 { -2,0},
+						 { 2,0}
 };
 const int wallKickTryCount = sizeof(wallKickTries)/sizeof(*wallKickTries);
 
@@ -303,12 +308,20 @@ bool rotatePiece(PlayerData& player, int dir) {
 	int width = player.currentShape->width;
 
 	if(width % 2 == 0) {
-		switch(oldRot) {
-		case 0: Y++; break;
-		case 1: X--; break;
-		case 2: Y--; break;
-		case 3: X++; break;
-		}
+		if(dir>0)
+			switch(oldRot) {
+			case 0: Y++; break;
+			case 1: X--; break;
+			case 2: Y--; break;
+			case 3: X++; break;
+			}
+		else
+			switch(oldRot) {
+			case 1: Y--; break;
+			case 2: X++; break;
+			case 3: Y++; break;
+			case 0: X--; break;
+			}
 	}
 
     player.currentRot+=4+dir;

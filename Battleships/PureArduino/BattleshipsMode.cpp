@@ -2,6 +2,9 @@
 #include "LotsOfHeader.hpp"
 #include "GameLogic.hpp"
 
+//You get one point for miss, two for hit, +2 for sink
+const int NUKE_REQ = 10;
+
 Boat *p1Boats, *p2Boats;
 int p1BoatCount, p2BoatCount;
 int p1BoatsLeft, p2BoatsLeft;
@@ -12,7 +15,7 @@ int p1Attacks[WIDTH][HEIGHT] = {};
 int p2Attacks[WIDTH][HEIGHT] = {};
 
 int x, y;
-bool player2;
+bool player2Turn;
 
 float hitCountdown;
 float truceTime;
@@ -20,13 +23,15 @@ float truceTime;
 bool done;
 bool player2Winner;
 
+int p1Points, p2Points;
+
 #define UNCHARTED 0
 #define MISS 1
 #define HIT 2
 #define SUNK 3
 
 void switchPlayer() {
-	player2^=true;
+	player2Turn^=true;
 	x = WIDTH/2;
 	y = HEIGHT/2;
 	truceTime = 0;
@@ -34,17 +39,18 @@ void switchPlayer() {
 
 void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount, bool p2AI) {
 	::p1Boats = p1Boats;
-	::p1BoatCount = p1BoatCount;
+	::p1BoatCount = p1BoatCount=1;
 	p1BoatsLeft = p1BoatCount;
 	::p2Boats = p2Boats;
-	::p2BoatCount = p2BoatCount;
+	::p2BoatCount = p2BoatCount=1;
 	p2BoatsLeft = p2BoatCount;
 	::p2AI = p2AI;
+	p1Points = p2Points = 0;
 
 	truceTime = 0;
 	hitCountdown = 0;
 	done = false;
-	player2 = true;
+	player2Turn = true;
 	switchPlayer();
 
 	for(int x = 0; x < WIDTH; x++)
@@ -67,44 +73,57 @@ CRGB getColorOfDEF(int hitStatus) {
     return getColorOfATK(hitStatus);
 }
 
-#define screenForAtk ((player2?PLAYER2:PLAYER1) + ATK)
-#define screenForDef ((player2?PLAYER1:PLAYER2) + DEF)
-#define MARKER_SET_COLOR CRGB(0, 255, 0)
+bool hasNuke() {
+	return (player2Turn ? p2Points : p1Points) >= NUKE_REQ;
+}
+
+#define screenForAtk ((player2Turn?PLAYER2:PLAYER1) + ATK)
+#define screenForDef ((player2Turn?PLAYER1:PLAYER2) + DEF)
+#define MARKER_SET_COLOR CRGB(255, 255, 255)
 #define FLASH_COLOR CRGB(100, 100, 100)
 #define SHOOT_TIME 30
 #define FLASH_DURATION 50
+#define FLASH_DURATION_SINK 100
 bool handlePlayerTurn() {
 	bool changed = false;
 
-	auto& defBoats = player2 ? p1Boats   : p2Boats;
-	int defBoatsCount = player2 ? p1BoatCount : p2BoatCount;
-	int& boatsLeft = player2 ? p2BoatsLeft : p1BoatsLeft;
-	auto& atkField = player2 ? p2Attacks : p1Attacks;
+	auto& defBoats = player2Turn ? p1Boats   : p2Boats;
+	int enemyDefBoatsCount = player2Turn ? p1BoatCount : p2BoatCount;
+	int& enemyBoatsLeft = player2Turn ? p1BoatsLeft : p2BoatsLeft;
+	auto& atkField = player2Turn ? p2Attacks : p1Attacks;
 
 	if(hitCountdown > 0) {
 		hitCountdown-=delta_time();
 
 		if(hitCountdown <= 0) {
 			hitCountdown = 0;
-		    playSoundEffect(SOUND_EXPLOTION);
-			fillScreen(screenForAtk, FLASH_COLOR);
-			fillScreen(screenForDef, FLASH_COLOR);
-			startTransition(screenForAtk, FLASH_DURATION);
-			startTransition(screenForDef, FLASH_DURATION);
 
 			atkField[x][y] = MISS;
-		    for(int boat = 0; boat < defBoatsCount; boat++) {
+		    for(int boat = 0; boat < enemyDefBoatsCount; boat++) {
 				Boat& b = defBoats[boat];
 				if(b.sunk)
 					continue;
 				if(b.hit(x, y)) {
 					atkField[x][y] = HIT;
 					if(b.maybeSink(atkField)) {
+						playSoundEffect(SOUND_EXPLOTION_SINK);
+						fillScreen(screenForAtk, FLASH_COLOR);
+						fillScreen(screenForDef, FLASH_COLOR);
+						startTransition(screenForAtk, FLASH_DURATION_SINK);
+						startTransition(screenForDef, FLASH_DURATION_SINK);
+
 						b.colorSink(atkField, SUNK);
-						if(--boatsLeft == 0) {
+						if(--enemyBoatsLeft == 0) {
 							done = true;
-							player2Winner = !player2; //If all player2s boats are sunk
+							player2Winner = player2Turn;
 						}
+
+					} else {
+						playSoundEffect(SOUND_EXPLOTION_HIT);
+						fillScreen(screenForAtk, FLASH_COLOR);
+						fillScreen(screenForDef, FLASH_COLOR);
+						startTransition(screenForAtk, FLASH_DURATION);
+						startTransition(screenForDef, FLASH_DURATION);
 					}
 				}
 			}
@@ -117,13 +136,13 @@ bool handlePlayerTurn() {
 	}
 
 	truceTime+=delta_time();
-    int* buttons = framesHeld.raw+(player2*BTN_OFFSET_P2);
+    int* buttons = framesHeld.raw+(player2Turn*BTN_OFFSET_P2);
 
 	int oldX = x, oldY = y;
 	if(clicked(buttons[BUTTON_LEFT]))
-		x+=LEFT(player2);
+		x+=LEFT(player2Turn);
 	if(clicked(buttons[BUTTON_RIGHT]))
-		x+=RIGHT(player2);
+		x+=RIGHT(player2Turn);
 	if(clicked(buttons[BUTTON_UP]))
 		y++;
 	if(clicked(buttons[BUTTON_DOWN]))
@@ -137,7 +156,7 @@ bool handlePlayerTurn() {
 	} else
 		changed = true;
 
-	bool shoot = clicked(buttons[BUTTON_A]) || (player2 && p2AI && truceTime > 100);
+	bool shoot = clicked(buttons[BUTTON_A]) || (player2Turn && p2AI && truceTime > 100);
 	if(shoot && !anyTransitionRunning()) {
 		if(atkField[x][y] != UNCHARTED) {
 		    playSoundEffect(SOUND_ILLEGAL_MOVE);
@@ -193,8 +212,8 @@ void updateBattleshipsMode(bool redraw) {
 			auto drawBullet = [&](int x, int y, CRGB color) {
 								  if(y < 0)
 									  return;
-								  int defPlayer = (player2 ? PLAYER1 : PLAYER2);
-								  int atkPlayer = (player2 ? PLAYER2 : PLAYER1);
+								  int defPlayer = (player2Turn ? PLAYER1 : PLAYER2);
+								  int atkPlayer = (player2Turn ? PLAYER2 : PLAYER1);
 								  if(y >= HEIGHT) {
 									  y -= HEIGHT;
 									  setTile(defPlayer+DEF, x, y, color);
@@ -218,12 +237,31 @@ void updateBattleshipsMode(bool redraw) {
 	}
 
 	if(done) {
-		//TODO: Flash P1/P2 winner until button press
+		int winnerScreen = player2Winner ? PLAYER2+ATK : PLAYER1+ATK;
+	    int loserScreen = player2Winner ? PLAYER1+ATK : PLAYER2+ATK;
+
+	    const CRGB HEART_COLOR = interpolate(0xFFFF00, 0xFF0000, sin(frameCount/20.f)*0.4f+.6f);
+		fillRect(winnerScreen, 1, 2, 8, 3, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 2, 1, 2, 1, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 6, 1, 2, 1, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 2, 5, 6, 1, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 3, 6, 4, 1, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 4, 7, 2, 1, HEART_COLOR, NORMAL_COORDS);
+
+		const CRGB CATHULU_GREEN = interpolate(0x00AA33, 0x000000, sin(frameCount/20.f)*0.4f+.6f);
+		const CRGB CATHULU_EYES = 0xFF4422;
+		fillRect(loserScreen, 3, 1, 4, 1, CATHULU_GREEN, NORMAL_COORDS);
+		fillRect(loserScreen, 2, 2, 6, 4, CATHULU_GREEN, NORMAL_COORDS);
+		fillRect(loserScreen, 3, 3, 1, 2, CATHULU_EYES, NORMAL_COORDS);
+		fillRect(loserScreen, 6, 3, 1, 2, CATHULU_EYES, NORMAL_COORDS);
+		fillRect(loserScreen, 3, 6, 1, 2, CATHULU_GREEN, NORMAL_COORDS);
+		fillRect(loserScreen, 6, 6, 1, 2, CATHULU_GREEN, NORMAL_COORDS);
+		setTile(loserScreen, 2, 8, CATHULU_GREEN, NORMAL_COORDS);
+		setTile(loserScreen, 7, 8, CATHULU_GREEN, NORMAL_COORDS);
 	} else if(!hitCountdown) {
 		setTile(screenForAtk, x, y, interpolate(inverse(underAtkMarkerColor), underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
 		setTile(screenForDef, x, y, interpolate(inverse(underDefMarkerColor), underDefMarkerColor, sin(frameCount/10.f)/2+.5f));
 	}
 
-	//TODO: Pause menu
 	handleHoldEscToMenu();
 }

@@ -4,12 +4,18 @@
 #define OCEAN_BG CRGB(30, 30, 130)
 #define OCEAN_BG2 CRGB(60, 70, 170)
 
+#ifdef __AVR__
+void drawOceanTile(int screen, int x, int y, int frame) {
+	setTile(screen, x, y, OCEAN_BG);
+}
+#else
 void drawOceanTile(int screen, int x, int y, int frame) {
 	float brightSpotA = fmod(5+frame/(float)10, WIDTH)+WIDTH/2;
 	float brightSpotB = brightSpotA-WIDTH;
 	float xSub = fmin(fabs(x-brightSpotA), fabs(x-brightSpotB))/2;
 	setTile(screen, x, y, interpolate(OCEAN_BG, OCEAN_BG2, (3+y-xSub)/(HEIGHT+2)));
 }
+#endif
 
 void drawWholeOcean(int screen, int frame) {
 	for(int x = 0; x < WIDTH; x++)

@@ -120,10 +120,11 @@ void updateShipPlaceMode(bool redraw) {
 
 	if(redraw) {
 		allScreens(drawWholeOcean(screen, 0));
-		if(!twoPlayer)
+		if(twoPlayer)
+			drawBoats(PLAYER2);
+		else
 			drawP2AIText(CRGB::Green);
 		drawBoats(PLAYER1);
-		drawBoats(PLAYER2);
 
 		bothPlayers(clearLCD(player));
 		bothPlayers(printLCDText(player, "Plasser skip:"));
@@ -135,7 +136,8 @@ void updateShipPlaceMode(bool redraw) {
 	}
 
 	drawPlayerBoatPlacement(PLAYER1, p1Overlap);
-	drawPlayerBoatPlacement(PLAYER2, p2Overlap);
+	if(twoPlayer)
+		drawPlayerBoatPlacement(PLAYER2, p2Overlap);
 
 	if(done) {
 		configureBattleshipsMode(boats[0], BOAT_COUNT, boats[1], BOAT_COUNT, !twoPlayer);
