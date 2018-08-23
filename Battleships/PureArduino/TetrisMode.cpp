@@ -479,7 +479,7 @@ void redrawBoard(PlayerData& player, int screen) {
 
 void updateTetrisMode(bool redraw) {
 	if(redraw) {
-		//TODO: loopMusic(MUSIC_TETRIS);
+		loopMusic(MUSIC_TETRIS);
 		fillScreen(PLAYER1+ATK, CRGB::Blue);
 		fillScreen(PLAYER2+ATK, CRGB::Blue);
 		fillScreen(PLAYER1+DEF, t_colors[BG]);

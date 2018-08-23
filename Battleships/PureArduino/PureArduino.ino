@@ -25,9 +25,6 @@ void setup() {
   Serial.setTimeout(1000);
   Serial.begin(115200);
 
-  Serial1.begin(9600);
-  Serial2.begin(9600);
-
   FastLED.addLeds < WS2812B, DATA_PIN_MIN + 0, GRB > (leds[0], LED_COUNT);
   FastLED.addLeds < WS2812B, DATA_PIN_MIN + 1, GRB > (leds[1], LED_COUNT);
   FastLED.addLeds < WS2812B, DATA_PIN_MIN + 2, GRB > (leds[2], LED_COUNT);
@@ -146,15 +143,11 @@ CRGB getCurrentColor(int screen, int x, int y, CoordType ct) {
   return leds[screen][getCoordForScreen(x, y, screen, ct)];
 }
 
-HardwareSerial& getLCDSerial(int player) {
-  return player == PLAYER2 ? Serial2 : Serial1;
-}
-
 void clearLCD(int player, bool home) {
-  getLCDSerial(player).print("$CLEAR\n");
+/*  getLCDSerial(player).print("$CLEAR\n");
   if(home)
     getLCDSerial(player).print("$HOME\n");
-    
+*/    
 }
 void setLCDPosition(int player, int line, int col) { //1-indexed
   /*auto& lcd = getLCDSerial(player);
