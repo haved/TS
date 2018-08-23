@@ -15,7 +15,7 @@ char TMP_PATH_CONCAT[255];
 void startAudioSystem(const char* pathPrefix) {
 	if(SDL_Init(SDL_INIT_AUDIO) != 0)
 		ERROR("Failed to init SDL for audio: " << SDL_GetError());
-	if(Mix_OpenAudio(44100, AUDIO_S32LSB, 2, 1024) == -1)
+	if(Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) == -1)
 		ERROR("Failed to Mix_OpenAudio" << "SDL_GetError(): " << SDL_GetError() << " Mix_GetError(): "<< Mix_GetError());
 
 	for(int wave = 0; wave < SOUND_COUNT; wave++) {

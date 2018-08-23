@@ -57,8 +57,15 @@ void setScreenToFraction(int screen, float fraction) {
     leds[screen][i] = interpolate(colorFrom[screen][i], colorTo[screen][i], fraction);
 }
 
-inline int getCoordForScreen(int x, int y, int screen) {
+inline int getCoordForScreen(int x, int y, int screen, CoordType ct) {
   assert(x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT);
+
+  if(ct == NORMAL_COORDS) {
+    if(screen >= PLAYER2)
+      x = WIDTH-1-x;
+    if(screen == PLAYER1+ATK || screen == PLAYER2+ATK)
+      y = HEIGHT-1-y;
+  }
 
   //x=0 is Player 1's left, and Player 2's right
   //y=0 is "between" the attack and defend screen (i.e. +y is up on ATK, down on DEF)
@@ -78,15 +85,15 @@ inline int getCoordForScreen(int x, int y, int screen) {
   return y + x * HEIGHT;
 }
 
-void setTile(int screen, int x, int y, CRGB color) {
-  int coord = getCoordForScreen(x, y, screen);
+void setTile(int screen, int x, int y, CRGB color, CoordType ct) {
+  int coord = getCoordForScreen(x, y, screen, ct);
   writeToBuffer[screen][coord] = color;
 }
 
-void fillRect(int screen, int x1, int y1, int width, int height, CRGB color) {
+void fillRect(int screen, int x1, int y1, int width, int height, CRGB color, CoordType ct) {
   for (int x = x1; x < x1 + width; x++) {
     for (int y = y1; y < y1 + height; y++) {
-      writeToBuffer[screen][getCoordForScreen(x, y, screen)] = color;
+      writeToBuffer[screen][getCoordForScreen(x, y, screen, ct)] = color;
     }
   }
 }
@@ -132,11 +139,11 @@ void getButtonStates(ButtonState<bool>& state) {
   }
 }
 
-CRGB getWrittenColor(int screen, int x, int y) {
-  return writeToBuffer[screen][getCoordForScreen(x, y, screen)];
+CRGB getWrittenColor(int screen, int x, int y, CoordType ct) {
+  return writeToBuffer[screen][getCoordForScreen(x, y, screen, ct)];
 }
-CRGB getCurrentColor(int screen, int x, int y) {
-  return leds[screen][getCoordForScreen(x, y, screen)];
+CRGB getCurrentColor(int screen, int x, int y, CoordType ct) {
+  return leds[screen][getCoordForScreen(x, y, screen, ct)];
 }
 
 HardwareSerial& getLCDSerial(int player) {

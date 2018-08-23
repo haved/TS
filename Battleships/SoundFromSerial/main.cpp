@@ -15,6 +15,7 @@ int main() {
 		case 's': //play (code)
 			{
 				char sound = serial.waitForByte();
+				std::cout << "Playing sound effect: " << (int)sound << std::endl;
 				if(sound < SOUND_COUNT)
 					playSoundEffect(static_cast<SoundCode>(sound));
 				else

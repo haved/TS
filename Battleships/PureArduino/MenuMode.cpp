@@ -125,6 +125,9 @@ void updateMenuMode(bool redraw) {
 		case TETRIS_CHOICE:
 		    configureTetrisMode(player2);
 			heavyTransitionTo(TETRIS_GAME_MODE, 10); break;
+		case 2:
+			allScreens(fillScreen(screen, 0xFFFFFF));
+			lightTransitionTo(MENU_MODE, 60); break;
 		default: heavyTransitionTo(MENU_MODE, 20); break;
 		}
 	}

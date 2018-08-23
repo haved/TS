@@ -3,11 +3,11 @@
 #include "LotsOfHeader.hpp"
 #include <stdint.h>
 
-CRGB t_colors[] =      {0x222222, 0xAA0000, 0x0000AA, 0x00AAAA, 0xAAAA00, 0xAA6600, 0x00AA00, 0xAA0066};
+CRGB t_colors[] =      {0x222222, 0xFF0000, 0x0000FF, 0x00FFFF, 0xFFFF00, 0xFF9900, 0x00FF00, 0xFF0099};
 CRGB t_colors_lost[] = {0x222222, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999, 0x999999};
 enum TetrisColor:int {BG, RED, BLUE, CYAN, YELLOW, ORANGE, GREEN, PINKK};
 
-#define TETRIS_DELTA_TIME (delta_time())
+#define TETRIS_DELTA_TIME 1
 
 struct TetrisShape {
     int line1;

@@ -2,8 +2,13 @@
 #include "LotsOfHeader.hpp"
 #include "GameLogic.hpp"
 
-//You get one point for miss, two for hit, +2 for sink
+#define BATTLESHIPS_DELTA_TIME 1
+
+//You get one point for hit, two for miss, +2 for sink
 const int NUKE_REQ = 10;
+#define MISS_PTS 2
+#define HIT_PTS 1
+#define SINK_PTS 2
 
 Boat *p1Boats, *p2Boats;
 int p1BoatCount, p2BoatCount;
@@ -17,6 +22,7 @@ int p2Attacks[WIDTH][HEIGHT] = {};
 int x, y;
 bool player2Turn;
 
+bool firingNuke;
 float hitCountdown;
 float truceTime;
 
@@ -39,10 +45,10 @@ void switchPlayer() {
 
 void configureBattleshipsMode(Boat* p1Boats, int p1BoatCount, Boat* p2Boats, int p2BoatCount, bool p2AI) {
 	::p1Boats = p1Boats;
-	::p1BoatCount = p1BoatCount=1;
+	::p1BoatCount = p1BoatCount;
 	p1BoatsLeft = p1BoatCount;
 	::p2Boats = p2Boats;
-	::p2BoatCount = p2BoatCount=1;
+	::p2BoatCount = p2BoatCount;
 	p2BoatsLeft = p2BoatCount;
 	::p2AI = p2AI;
 	p1Points = p2Points = 0;
@@ -73,15 +79,17 @@ CRGB getColorOfDEF(int hitStatus) {
     return getColorOfATK(hitStatus);
 }
 
-bool hasNuke() {
-	return (player2Turn ? p2Points : p1Points) >= NUKE_REQ;
+bool canFireNuke() {
+	return (player2Turn ? p2Points : p1Points) >= NUKE_REQ && x>0 && y>0 && x<WIDTH-1 && y<HEIGHT-1;
 }
 
 #define screenForAtk ((player2Turn?PLAYER2:PLAYER1) + ATK)
 #define screenForDef ((player2Turn?PLAYER1:PLAYER2) + DEF)
 #define MARKER_SET_COLOR CRGB(255, 255, 255)
+#define NUKE_MARKER_SET_COLOR CRGB(255, 0, 255)
 #define FLASH_COLOR CRGB(100, 100, 100)
 #define SHOOT_TIME 30
+#define SHOOT_TIME_NUKE 40
 #define FLASH_DURATION 50
 #define FLASH_DURATION_SINK 100
 bool handlePlayerTurn() {
@@ -92,8 +100,10 @@ bool handlePlayerTurn() {
 	int& enemyBoatsLeft = player2Turn ? p1BoatsLeft : p2BoatsLeft;
 	auto& atkField = player2Turn ? p2Attacks : p1Attacks;
 
+	int& points = player2Turn ? p2Points : p1Points;
+
 	if(hitCountdown > 0) {
-		hitCountdown-=delta_time();
+		hitCountdown-=BATTLESHIPS_DELTA_TIME;
 
 		if(hitCountdown <= 0) {
 			hitCountdown = 0;
@@ -104,8 +114,12 @@ bool handlePlayerTurn() {
 				if(b.sunk)
 					continue;
 				if(b.hit(x, y)) {
+					points += HIT_PTS;
 					atkField[x][y] = HIT;
 					if(b.maybeSink(atkField)) {
+						//Sunk
+						points += SINK_PTS;
+
 						playSoundEffect(SOUND_EXPLOTION_SINK);
 						fillScreen(screenForAtk, FLASH_COLOR);
 						fillScreen(screenForDef, FLASH_COLOR);
@@ -127,6 +141,8 @@ bool handlePlayerTurn() {
 					}
 				}
 			}
+			if(atkField[x][y] == MISS)
+				points += MISS_PTS;
 
 			switchPlayer();
 
@@ -135,7 +151,7 @@ bool handlePlayerTurn() {
 	    return true;
 	}
 
-	truceTime+=delta_time();
+	truceTime+=BATTLESHIPS_DELTA_TIME;
     int* buttons = framesHeld.raw+(player2Turn*BTN_OFFSET_P2);
 
 	int oldX = x, oldY = y;
@@ -162,15 +178,29 @@ bool handlePlayerTurn() {
 		    playSoundEffect(SOUND_ILLEGAL_MOVE);
 		} else {
 			hitCountdown = SHOOT_TIME;
+			firingNuke = false;
 			playSoundEffect(SOUND_FIRE_GUN);
-			setTile(screenForAtk, x, y, MARKER_SET_COLOR);
-			setTile(screenForDef, x, y, MARKER_SET_COLOR);
+			changed = true;
 	    }
+	}
+
+	bool nuke_try = clicked(buttons[BUTTON_B]);
+	if(nuke_try && !anyTransitionRunning()) {
+		if(!canFireNuke()) {
+			playSoundEffect(SOUND_ILLEGAL_MOVE);
+		} else {
+			hitCountdown = SHOOT_TIME;
+			firingNuke = true;
+			playSoundEffect(SOUND_FIRE_GUN); //TODO: NUKE
+			changed = true;
+		}
 	}
 
 	return changed;
 }
 
+#define SHOOT_AIM_COLOR 0xFF3333
+#define NUKE_AIM_COLOR 0x0000FF
 void updateBattleshipsMode(bool redraw) {
 
 	if(redraw) {
@@ -206,8 +236,13 @@ void updateBattleshipsMode(bool redraw) {
 
 		if(hitCountdown > 0) {
 
-			setTile(screenForAtk, x, y, MARKER_SET_COLOR);
-			setTile(screenForDef, x, y, MARKER_SET_COLOR);
+			if(firingNuke) {
+				fillRect(screenForAtk, x-1, y-1, 3, 3, NUKE_MARKER_SET_COLOR);
+				fillRect(screenForDef, x-1, y-1, 3, 3, NUKE_MARKER_SET_COLOR);
+			} else {
+				setTile(screenForAtk, x, y, MARKER_SET_COLOR);
+				setTile(screenForDef, x, y, MARKER_SET_COLOR);
+			}
 
 			auto drawBullet = [&](int x, int y, CRGB color) {
 								  if(y < 0)
@@ -259,8 +294,12 @@ void updateBattleshipsMode(bool redraw) {
 		setTile(loserScreen, 2, 8, CATHULU_GREEN, NORMAL_COORDS);
 		setTile(loserScreen, 7, 8, CATHULU_GREEN, NORMAL_COORDS);
 	} else if(!hitCountdown) {
-		setTile(screenForAtk, x, y, interpolate(inverse(underAtkMarkerColor), underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
-		setTile(screenForDef, x, y, interpolate(inverse(underDefMarkerColor), underDefMarkerColor, sin(frameCount/10.f)/2+.5f));
+		if(canFireNuke()) {
+			fillRect(screenForAtk, x-1, y-1, 3, 3, interpolate(SHOOT_AIM_COLOR, underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
+			fillRect(screenForDef, x-1, y-1, 3, 3, interpolate(SHOOT_AIM_COLOR, underDefMarkerColor, sin(frameCount/10.f)/2+.5f));
+		}
+		setTile(screenForAtk, x, y, interpolate(SHOOT_AIM_COLOR, underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
+		setTile(screenForDef, x, y, interpolate(SHOOT_AIM_COLOR, underDefMarkerColor, sin(frameCount/10.f)/2+.5f));
 	}
 
 	handleHoldEscToMenu();
