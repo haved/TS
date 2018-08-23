@@ -5,7 +5,7 @@
 #define BATTLESHIPS_DELTA_TIME 1
 
 //You get one point for hit, two for miss, +2 for sink
-const int NUKE_REQ = 10;
+const int NUKE_REQ = 15;
 #define MISS_PTS 2
 #define HIT_PTS 1
 #define SINK_PTS 2
@@ -89,9 +89,10 @@ bool canFireNuke() {
 #define NUKE_MARKER_SET_COLOR CRGB(255, 0, 255)
 #define FLASH_COLOR CRGB(100, 100, 100)
 #define SHOOT_TIME 30
-#define SHOOT_TIME_NUKE 40
 #define FLASH_DURATION 50
 #define FLASH_DURATION_SINK 100
+#define NUKE_FLASH_DURATION 200
+#define NUKE_SHOT_SLOWNESS 0.1f
 bool handlePlayerTurn() {
 	bool changed = false;
 
@@ -103,46 +104,67 @@ bool handlePlayerTurn() {
 	int& points = player2Turn ? p2Points : p1Points;
 
 	if(hitCountdown > 0) {
-		hitCountdown-=BATTLESHIPS_DELTA_TIME;
+		hitCountdown-=BATTLESHIPS_DELTA_TIME * (firingNuke ? NUKE_SHOT_SLOWNESS : 1);
 
 		if(hitCountdown <= 0) {
 			hitCountdown = 0;
 
-			atkField[x][y] = MISS;
-		    for(int boat = 0; boat < enemyDefBoatsCount; boat++) {
-				Boat& b = defBoats[boat];
-				if(b.sunk)
-					continue;
-				if(b.hit(x, y)) {
-					points += HIT_PTS;
-					atkField[x][y] = HIT;
-					if(b.maybeSink(atkField)) {
-						//Sunk
-						points += SINK_PTS;
+			auto handleHit = [&](int x, int y, bool effects) {
+								 atkField[x][y] = MISS;
+								 for(int boat = 0; boat < enemyDefBoatsCount; boat++) {
+									 Boat& b = defBoats[boat];
+									 if(b.sunk)
+										 continue;
+									 if(b.hit(x, y)) {
+										 points += HIT_PTS;
+										 atkField[x][y] = HIT;
+										 if(b.maybeSink(atkField)) {
+											 //Sunk
+											 points += SINK_PTS;
 
-						playSoundEffect(SOUND_EXPLOTION_SINK);
-						fillScreen(screenForAtk, FLASH_COLOR);
-						fillScreen(screenForDef, FLASH_COLOR);
-						startTransition(screenForAtk, FLASH_DURATION_SINK);
-						startTransition(screenForDef, FLASH_DURATION_SINK);
+											 if(effects) {
+												 playSoundEffect(SOUND_EXPLOTION_SINK);
+												 fillScreen(screenForAtk, FLASH_COLOR);
+												 fillScreen(screenForDef, FLASH_COLOR);
+												 startTransition(screenForAtk, FLASH_DURATION_SINK);
+												 startTransition(screenForDef, FLASH_DURATION_SINK);
+											 }
 
-						b.colorSink(atkField, SUNK);
-						if(--enemyBoatsLeft == 0) {
-							done = true;
-							player2Winner = player2Turn;
-						}
+											 b.colorSink(atkField, SUNK);
+											 if(--enemyBoatsLeft == 0) {
+												 done = true;
+												 player2Winner = player2Turn;
+											 }
 
-					} else {
-						playSoundEffect(SOUND_EXPLOTION_HIT);
-						fillScreen(screenForAtk, FLASH_COLOR);
-						fillScreen(screenForDef, FLASH_COLOR);
-						startTransition(screenForAtk, FLASH_DURATION);
-						startTransition(screenForDef, FLASH_DURATION);
+										 } else if(effects) {
+											 playSoundEffect(SOUND_EXPLOTION_HIT);
+											 fillScreen(screenForAtk, FLASH_COLOR);
+											 fillScreen(screenForDef, FLASH_COLOR);
+											 startTransition(screenForAtk, FLASH_DURATION);
+											 startTransition(screenForDef, FLASH_DURATION);
+										 }
+									 }
+								 }
+								 if(atkField[x][y] == MISS)
+									 points += MISS_PTS;
+
+							 };
+
+			if(firingNuke) {
+				int newPoints = points - NUKE_REQ;
+				for(int i = -1; i <= 1; i++) {
+					for(int j = -1; j <= 1; j++) {
+						handleHit(x+i, y+j, false);
 					}
 				}
+				points = newPoints;
+				stopSoundEffects();
+				playSoundEffect(SOUND_NUKE_HIT);
+				allScreens(fillScreen(screen, FLASH_COLOR));
+				allScreens(startTransition(screen, NUKE_FLASH_DURATION));
+			} else {
+				handleHit(x, y, true);
 			}
-			if(atkField[x][y] == MISS)
-				points += MISS_PTS;
 
 			switchPlayer();
 
@@ -191,7 +213,8 @@ bool handlePlayerTurn() {
 		} else {
 			hitCountdown = SHOOT_TIME;
 			firingNuke = true;
-			playSoundEffect(SOUND_FIRE_GUN); //TODO: NUKE
+			playSoundEffect(SOUND_FIRE_GUN);
+			playSoundEffect(SOUND_FIRE_NUKE);
 			changed = true;
 		}
 	}
@@ -276,12 +299,14 @@ void updateBattleshipsMode(bool redraw) {
 	    int loserScreen = player2Winner ? PLAYER1+ATK : PLAYER2+ATK;
 
 	    const CRGB HEART_COLOR = interpolate(0xFFFF00, 0xFF0000, sin(frameCount/20.f)*0.4f+.6f);
-		fillRect(winnerScreen, 1, 2, 8, 3, HEART_COLOR, NORMAL_COORDS);
-		fillRect(winnerScreen, 2, 1, 2, 1, HEART_COLOR, NORMAL_COORDS);
-		fillRect(winnerScreen, 6, 1, 2, 1, HEART_COLOR, NORMAL_COORDS);
-		fillRect(winnerScreen, 2, 5, 6, 1, HEART_COLOR, NORMAL_COORDS);
-		fillRect(winnerScreen, 3, 6, 4, 1, HEART_COLOR, NORMAL_COORDS);
-		fillRect(winnerScreen, 4, 7, 2, 1, HEART_COLOR, NORMAL_COORDS);
+
+		fillRect(winnerScreen, 0, 4, 5, 1, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 0, 6, 5, 1, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 1, 3, 1, 5, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 3, 3, 1, 5, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 6, 1, 2, 7, HEART_COLOR, NORMAL_COORDS);
+		fillRect(winnerScreen, 5, 8, 4, 1, HEART_COLOR, NORMAL_COORDS);
+		setTile(winnerScreen, 5, 2, HEART_COLOR, NORMAL_COORDS);
 
 		const CRGB CATHULU_GREEN = interpolate(0x00AA33, 0x000000, sin(frameCount/20.f)*0.4f+.6f);
 		const CRGB CATHULU_EYES = 0xFF4422;
@@ -295,8 +320,8 @@ void updateBattleshipsMode(bool redraw) {
 		setTile(loserScreen, 7, 8, CATHULU_GREEN, NORMAL_COORDS);
 	} else if(!hitCountdown) {
 		if(canFireNuke()) {
-			fillRect(screenForAtk, x-1, y-1, 3, 3, interpolate(SHOOT_AIM_COLOR, underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
-			fillRect(screenForDef, x-1, y-1, 3, 3, interpolate(SHOOT_AIM_COLOR, underDefMarkerColor, sin(frameCount/10.f)/2+.5f));
+			fillRect(screenForAtk, x-1, y-1, 3, 3, interpolate(NUKE_AIM_COLOR, 0xFF00FF, sin(frameCount/10.f)/2+.5f));
+			fillRect(screenForDef, x-1, y-1, 3, 3, interpolate(NUKE_AIM_COLOR, 0xFF00FF, sin(frameCount/10.f)/2+.5f));
 		}
 		setTile(screenForAtk, x, y, interpolate(SHOOT_AIM_COLOR, underAtkMarkerColor, sin(frameCount/10.f)/2+.5f));
 		setTile(screenForDef, x, y, interpolate(SHOOT_AIM_COLOR, underDefMarkerColor, sin(frameCount/10.f)/2+.5f));

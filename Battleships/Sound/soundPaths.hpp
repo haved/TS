@@ -6,8 +6,10 @@ SOUND(ACTION, "action.wav"),
 #define SOUND_PLAYER_2_JOIN SOUND_ACTION
 SOUND(DONE, "done.wav"),
 SOUND(FIRE_GUN, "fire_gun.ogg"),
-SOUND(EXPLOTION_HIT, "explotion.wav"),
+SOUND(EXPLOTION_HIT, "small_explotion.wav"),
 #define SOUND_EXPLOTION_SINK SOUND_EXPLOTION_HIT
+SOUND(FIRE_NUKE, "air_raid.ogg"),
+SOUND(NUKE_HIT, "nuke.ogg"),
 
 SOUND(ROTATE_TETRO, "block-rotate.mp3"),
 SOUND(SLOW_HIT_TETRO, "slow-hit.mp3"),
