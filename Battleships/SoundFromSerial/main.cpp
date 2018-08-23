@@ -1,9 +1,12 @@
 #include "sound.hpp"
 #include "SerialIO.hpp"
 #include <iostream>
+#include <SDL2/SDL.h>
 
 int main() {
 	startAudioSystem("../Sound/");
+	playSoundEffect(SOUND_ACTION);
+	SDL_Delay(1000);
 
 	SerialIO serial;
 	while(true) {
