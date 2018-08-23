@@ -1,7 +1,0 @@
-[Desktop Entry]
-
-Type=Application
-
-Path=/home/pi/Development/TS/Battleships/SoundFromSerial
-
-Exec=bash auto_listener.sh
