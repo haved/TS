@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bash
 ./SoundFromSerial
 git pull
 make
