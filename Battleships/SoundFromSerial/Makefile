@@ -16,5 +16,5 @@ build/%.o: %.cpp build $(DEPS)
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -r build
-	rm SoundFromSerial
+	rm -rf build
+	rm -rf SoundFromSerial
