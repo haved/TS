@@ -68,6 +68,7 @@ void loopMusic(MusicCode musicCode) {
 		return;
 	}
 	currentMusicCode = musicCode;
+	Mix_HaltMusic();
 	Mix_PlayMusic(music[musicCode], -1); //inf loop
 }
 

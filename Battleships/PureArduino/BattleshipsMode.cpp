@@ -92,7 +92,7 @@ bool canFireNuke() {
 #define FLASH_DURATION 50
 #define FLASH_DURATION_SINK 100
 #define NUKE_FLASH_DURATION 200
-#define NUKE_SHOT_SLOWNESS 0.1f
+#define NUKE_SHOT_SLOWNESS 0.16f
 bool handlePlayerTurn() {
 	bool changed = false;
 
@@ -110,6 +110,8 @@ bool handlePlayerTurn() {
 			hitCountdown = 0;
 
 			auto handleHit = [&](int x, int y, bool effects) {
+								 if(atkField[x][y] != UNCHARTED)
+									 return;
 								 atkField[x][y] = MISS;
 								 for(int boat = 0; boat < enemyDefBoatsCount; boat++) {
 									 Boat& b = defBoats[boat];
