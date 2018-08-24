@@ -271,10 +271,12 @@ void removeClearedLines(PlayerData& player) {
 
 	addScore(player, LINE_CLEAR_SCORE[clearedLines]);
 
-	player.otherPlayer->awaitingTrashLines += TRASH_LINE_SEND[clearedLines];
-	player.awaitingTrashLines -= TRASH_LINE_SEND[clearedLines];
-	if(player.awaitingTrashLines < 0)
-		player.awaitingTrashLines = 0;
+	int sendTrash = TRASH_LINE_SEND[clearedLines];
+	while(sendTrash > 0 && player.awaitingTrashLines > 0) {
+		sendTrash--;
+		player.awaitingTrashLines--;
+	}
+	player.otherPlayer->awaitingTrashLines += sendTrash;
 }
 
 void flashPieceToBoard(PlayerData& player) {
