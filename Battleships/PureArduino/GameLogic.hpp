@@ -14,7 +14,8 @@ enum GameModes {
 				SHIP_PLACE_MODE,
 				BS_GAME_MODE,
 				BS_PAUSE_MODE,
-				TETRIS_GAME_MODE
+				TETRIS_GAME_MODE,
+				COMET_MODE
 };
 
 void instantSwitchModeTo(int mode);

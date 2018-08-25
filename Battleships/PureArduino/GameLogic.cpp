@@ -52,6 +52,7 @@ void updateMenuMode(bool redraw); //In MenuMode.cpp
 void updateShipPlaceMode(bool redraw); //In PlaceShipsMode.cpp
 void updateBattleshipsMode(bool redraw); //In BattleshipsMode.cpp
 void updateTetrisMode(bool redraw); //In TetrisMode.cpp
+void updateCometMode(bool redraw); //In CometMode.cpp
 void callModeUpdateFunction(int mode, bool redraw) {
 	switch(mode) {
 	case SPLASH_SCREEN_MODE: updateSplashScreenMode(redraw); break;
@@ -60,6 +61,7 @@ void callModeUpdateFunction(int mode, bool redraw) {
 	case SHIP_PLACE_MODE: updateShipPlaceMode(redraw); break;
 	case BS_GAME_MODE: updateBattleshipsMode(redraw); break;
 	case TETRIS_GAME_MODE: updateTetrisMode(redraw); break;
+	case COMET_MODE: updateCometMode(redraw); break;
     default: break;
 	}
 }

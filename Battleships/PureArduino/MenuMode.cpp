@@ -67,7 +67,8 @@ void drawP2Human() {
 
 enum MenuChoice {
 				 BATTLESHIPS_CHOICE=0,
-				 TETRIS_CHOICE
+				 TETRIS_CHOICE,
+				 COMET_CHOICE=4
 };
 
 const char* get_game_name(int code) {
@@ -108,7 +109,7 @@ void updateMenuMode(bool redraw) {
 		menuChoicePos = prevChoice;
 	}
 	else {
-		//playSoundEffect(SOUND_MOVE_ACTION);
+		//TODO: playSoundEffect(SOUND_MOVE_ACTION);
 		setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + prevChoice, MENU_OPTION_BG);
 		redraw_lcd = true;
 	}
@@ -125,6 +126,9 @@ void updateMenuMode(bool redraw) {
 		case TETRIS_CHOICE:
 		    configureTetrisMode(player2);
 			heavyTransitionTo(TETRIS_GAME_MODE, 10); break;
+		case COMET_CHOICE:
+		    configureCometMode(player2);
+			heavyTransitionTo(COMET_MODE, 10); break;
 		default: heavyTransitionTo(MENU_MODE, 20); break;
 		}
 	}

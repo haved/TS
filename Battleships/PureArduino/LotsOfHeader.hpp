@@ -18,3 +18,6 @@ void drawWholeOcean(int screen, int frame);
 
 //TetrisMode.cpp
 void configureTetrisMode(bool player2);
+
+//CometMode.cpp
+void configureCometMode(bool player2);
