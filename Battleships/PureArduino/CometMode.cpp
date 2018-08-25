@@ -285,7 +285,7 @@ void updateCometMode(bool redraw) {
 			countdown_sub = COUNTDOWN_SUB_TIME;
 
 			if(countdown > 1)
-				playSoundEffect(SOUND_DONE);
+				playSoundEffect(SOUND_ACTION);
 			else if(countdown == 1) {
 				playSoundEffect(SOUND_DONE);
 				loopMusic(MUSIC_FIGHT);
