@@ -368,8 +368,7 @@ void addAnyTrashLines(PlayerData& player) {
 		}
 		int hole = player.seed % WIDTH;
 		for(int x = 0; x < WIDTH; x++)
-			if(x != hole)
-				player.board[x][HEIGHT-1] = TRASH_TILE;
+			player.board[x][HEIGHT-1] = x == hole ? BG : TRASH_TILE;
 	}
 }
 

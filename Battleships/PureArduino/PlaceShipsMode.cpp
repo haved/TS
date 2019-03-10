@@ -57,7 +57,7 @@ bool handlePlayerBoatPlacement(int player_global, bool* redraw, bool* overlappin
 		moving.x+=LEFT(player_global);
 	if(clicked(buttons[BUTTON_RIGHT]))
 		moving.x+=RIGHT(player_global);
-	if(clicked(buttons[BUTTON_B]))
+	if(pressed(buttons[BUTTON_B]))
 		moving.rotate();
 
 	if(moving.equals(placing));
@@ -72,7 +72,7 @@ bool handlePlayerBoatPlacement(int player_global, bool* redraw, bool* overlappin
 	for(int i = 0; i < placed && !*overlapping; i++)
 		*overlapping |= placing.overrides(boats[p][i]);
 
-	if(clicked(buttons[BUTTON_A])) {
+	if(pressed(buttons[BUTTON_A])) {
 		if(*overlapping) {
 			playSoundEffect(SOUND_ILLEGAL_ACTION);
 		}
@@ -125,14 +125,6 @@ void updateShipPlaceMode(bool redraw) {
 		else
 			drawP2AIText(CRGB::Green);
 		drawBoats(PLAYER1);
-
-		bothPlayers(clearLCD(player));
-		bothPlayers(printLCDText(player, "Plasser skip:"));
-		bothPlayers(setLCDPosition(player, 2, 1));
-		printLCDNumber(PLAYER1, boatsPlaced[0]);
-		printLCDNumber(PLAYER2, boatsPlaced[1]);
-		bothPlayers(printLCDText(player, "/"));
-		bothPlayers(printLCDNumber(player, BOAT_COUNT));
 	}
 
 	drawPlayerBoatPlacement(PLAYER1, p1Overlap);

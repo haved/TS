@@ -6,14 +6,17 @@
 ButtonState<bool> buttons = {};
 ButtonState<int> framesHeld = {};
 
+bool pressed(int framesHeld) {
+	return framesHeld == 1;
+}
+
 bool clicked(int framesHeld) {
 	if(framesHeld == 1)
 		return true;
-	if(framesHeld > 10)
-		return (framesHeld-10)%4 == 0;
+	if(framesHeld > 15)
+		return (framesHeld-15)%4 == 0;
 	return false;
 }
-
 
 int currMode = SPLASH_SCREEN_MODE;
 bool changedMode = true;
@@ -53,6 +56,7 @@ void updateShipPlaceMode(bool redraw); //In PlaceShipsMode.cpp
 void updateBattleshipsMode(bool redraw); //In BattleshipsMode.cpp
 void updateTetrisMode(bool redraw); //In TetrisMode.cpp
 void updateCometMode(bool redraw); //In CometMode.cpp
+void updatePongMode(bool redraw); //In PongMode.cpp
 void callModeUpdateFunction(int mode, bool redraw) {
 	switch(mode) {
 	case SPLASH_SCREEN_MODE: updateSplashScreenMode(redraw); break;
@@ -62,6 +66,7 @@ void callModeUpdateFunction(int mode, bool redraw) {
 	case BS_GAME_MODE: updateBattleshipsMode(redraw); break;
 	case TETRIS_GAME_MODE: updateTetrisMode(redraw); break;
 	case COMET_MODE: updateCometMode(redraw); break;
+	case PONG_MODE: updatePongMode(redraw); break;
     default: break;
 	}
 }
@@ -69,22 +74,25 @@ void callModeUpdateFunction(int mode, bool redraw) {
 void loop() {
 	getButtonStates(buttons);
 
-	frameCount++;
-	for(int i = 0; i < BUTTON_COUNT; i++) {
-		auto& fH = framesHeld.raw[i];
-		fH = buttons.raw[i] ? fH+1 : 0;
-		if(fH)
-			lastFrameInteractedWith = frameCount;
-	}
-
 	do {
+		frameCount++;
+		for(int i = 0; i < BUTTON_COUNT; i++) {
+			auto& fH = framesHeld.raw[i];
+			fH = buttons.raw[i] ? fH+1 : 0;
+			if(fH)
+				lastFrameInteractedWith = frameCount;
+		}
+
 		bool redrawWasWanted = redrawWanted;
 		redrawWanted = false;
 		if(changedMode) {
 			frameCount = 0;
+			lastFrameInteractedWith = 0;
+			/*
 			for(int i = 0; i < BUTTON_COUNT; i++)
 				framesHeld.raw[i] = 0;
-			lastFrameInteractedWith = 0;
+			*/
+
 			changedMode = false;
 			callModeUpdateFunction(currMode, true);
 		} else

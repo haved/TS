@@ -5,6 +5,7 @@ extern ButtonState<bool> buttons;
 extern ButtonState<int> framesHeld;
 extern int frameCount;
 extern int lastFrameInteractedWith;
+bool pressed(int framesHeld);
 bool clicked(int framesHeld);
 
 enum GameModes {
@@ -15,7 +16,8 @@ enum GameModes {
 				BS_GAME_MODE,
 				BS_PAUSE_MODE,
 				TETRIS_GAME_MODE,
-				COMET_MODE
+				COMET_MODE,
+				PONG_MODE
 };
 
 void instantSwitchModeTo(int mode);

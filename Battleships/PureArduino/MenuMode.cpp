@@ -117,7 +117,7 @@ void updateMenuMode(bool redraw) {
 	CRGB color = interpolate(MENU_OPTION_COLOR_1, MENU_OPTION_COLOR_2, (sin(frameCount/5.)+1)/2);
 	setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + menuChoicePos, color);
 
-	if(clicked(framesHeld.one()[BUTTON_A])) {
+	if(pressed(framesHeld.one()[BUTTON_A])) {
 		playSoundEffect(SOUND_DONE);
 		switch(menuChoicePos) {
 		case BATTLESHIPS_CHOICE:
@@ -133,14 +133,14 @@ void updateMenuMode(bool redraw) {
 		}
 	}
 
-	if(framesHeld.two()[BUTTON_A]==1 && !player2) {
+	if(pressed(framesHeld.two()[BUTTON_A]) && !player2) {
 		playSoundEffect(SOUND_PLAYER_2_JOIN);
 		player2 = true;
 		animate_player2 = 20;
 		redraw_lcd = true;
 	}
 
-	if(clicked(framesHeld.two()[BUTTON_MENU]) && player2) {
+	if(pressed(framesHeld.two()[BUTTON_MENU]) && player2) {
 		playSoundEffect(SOUND_PLAYER_2_LEAVE);
 		player2 = false;
 	    animate_player2 = 20;

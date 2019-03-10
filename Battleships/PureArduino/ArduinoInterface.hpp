@@ -69,11 +69,7 @@ void setLCDPosition(int player, int line, int col); //1-indexed
 void printLCDText(int player, const char* text);
 void printLCDNumber(int player, int number);
 
-#ifdef __AVR__
 #include "sound/SoundInterface.hpp"
-#else
-#include "../Sound/SoundInterface.hpp"
-#endif
 
 #define up(c) (c)/*((c)*(c))*/
 #define down(c) (c)/*sqrt(c)*/
