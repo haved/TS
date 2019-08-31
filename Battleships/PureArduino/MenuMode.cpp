@@ -68,16 +68,9 @@ void drawP2Human() {
 enum MenuChoice {
 				 BATTLESHIPS_CHOICE=0,
 				 TETRIS_CHOICE,
+				 PONG_CHOICE=3,
 				 COMET_CHOICE=4
 };
-
-const char* get_game_name(int code) {
-	switch(code) {
-	case BATTLESHIPS_CHOICE: return "Battleships";
-	case TETRIS_CHOICE: return "Tetris";
-	default: return "N/A";
-	}
-}
 
 #define IDLE_TIME_BEFORE_SPLASH 1000
 void updateMenuMode(bool redraw) {
@@ -111,7 +104,6 @@ void updateMenuMode(bool redraw) {
 	else {
 		//TODO: playSoundEffect(SOUND_MOVE_ACTION);
 		setTile(PLAYER1+DEF, 0, MENU_OPTIONS_Y_OFFSET + prevChoice, MENU_OPTION_BG);
-		redraw_lcd = true;
 	}
 
 	CRGB color = interpolate(MENU_OPTION_COLOR_1, MENU_OPTION_COLOR_2, (sin(frameCount/5.)+1)/2);
@@ -126,6 +118,9 @@ void updateMenuMode(bool redraw) {
 		case TETRIS_CHOICE:
 		    configureTetrisMode(player2);
 			heavyTransitionTo(TETRIS_GAME_MODE, 10); break;
+		case COMET_MODE:
+			configurePongMode(player2);
+			heavyTransitionTo(PONG_MODE, 10); break;
 		case COMET_CHOICE:
 		    configureCometMode(player2);
 			heavyTransitionTo(COMET_MODE, 10); break;
@@ -137,14 +132,12 @@ void updateMenuMode(bool redraw) {
 		playSoundEffect(SOUND_PLAYER_2_JOIN);
 		player2 = true;
 		animate_player2 = 20;
-		redraw_lcd = true;
 	}
 
 	if(pressed(framesHeld.two()[BUTTON_MENU]) && player2) {
 		playSoundEffect(SOUND_PLAYER_2_LEAVE);
 		player2 = false;
 	    animate_player2 = 20;
-		redraw_lcd = true;
 	}
 
 	if(animate_player2) {
@@ -154,29 +147,6 @@ void updateMenuMode(bool redraw) {
 			drawP2Human();
 		else
 			drawP2CPU();
-	}
-
-	if(redraw_lcd) {
-		fadeOutMusic(20);
-
-		bothPlayers(clearLCD(player));
-		if(player2)
-			printLCDText(PLAYER1, "Spill sammen:");
-		else
-			printLCDText(PLAYER1, "Spill alene:");
-		setLCDPosition(PLAYER1, 2, 1);
-		printLCDText(PLAYER1, get_game_name(menuChoicePos));
-
-		if(player2) {
-			printLCDText(PLAYER2, "Du er med!");
-			setLCDPosition(PLAYER2, 2, 1);
-			printLCDText(PLAYER2, "(MENU) - Forlat");
-		}
-		else {
-			printLCDText(PLAYER2, "Du er ikke med!");
-			setLCDPosition(PLAYER2, 2, 1);
-			printLCDText(PLAYER2, "(A) - Bli med");
-		}
 	}
 
 	if(frameCount - lastFrameInteractedWith > IDLE_TIME_BEFORE_SPLASH)

@@ -15,10 +15,10 @@ const float JUMP_SPEED = -1.4;
 const CRGB BG_COLOR = 0x222222;
 const CRGB HEAD_COLOR = 0xDDAAAA;
 
-const CRGB P1_COLOR = 0xFF0000;
-const CRGB P2_COLOR = 0x0000FF;
+const CRGB P1_COLOR = 0x0000FF;
+const CRGB P2_COLOR = 0xFF0000;
 
-const int START_HEALTH = 15;
+const int START_HEALTH = 25;
 
 struct PlayerData {
     float x, y;
