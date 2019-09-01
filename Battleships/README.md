@@ -1,6 +1,6 @@
 ## Battleships Arcade Machine
 
-![Machine in action](/Battleships/MahcineInAction.jpg?raw=true)
+![Machine in action](/Battleships/MachineInAction.jpg?raw=true)
 The machine in Action at the 2019 Trondheim Maker Faire
   
 This folder contains the source code for a Battleships Arcade Machine.
