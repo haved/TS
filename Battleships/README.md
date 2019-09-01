@@ -1,4 +1,8 @@
 ## Battleships Arcade Machine
+
+![Machine in action](/Battleships/MahcineInAction.jpg?raw=true)
+The machine in Action at the 2019 Trondheim Maker Faire
+  
 This folder contains the source code for a Battleships Arcade Machine.
 Four screens, two joysticks and some buttons are connected to an Arduino Mega.
 It runs a program with all the games and goodness.
